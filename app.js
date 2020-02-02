@@ -42,7 +42,7 @@ var hc = new healthcheck(app, {redis: organisationService.RedisCon, pg: organisa
 hc.Initiate();
 
 
-
+//-----------------------------------Organization----------------------------------------------------------
 app.get('/DVP/API/:version/Organisation/Name/:tenant/:company', authorization({resource:"myUserProfile", action:"read"}), organisationService.GetOrganisationName);
 app.get('/DVP/API/:version/Organisations', authorization({resource:"organisation", action:"read"}), organisationService.GetOrganisations);
 app.get('/DVP/API/:version/Organisations/:page/:size', authorization({resource:"organisation", action:"read"}), organisationService.GetOrganisationsWithPaging);
@@ -51,9 +51,6 @@ app.get('/DVP/API/:version/Organisation/ConsoleAccessLimits', authorization({res
 app.delete('/DVP/API/:version/Organisation', authorization({resource:"organisation", action:"delete"}), organisationService.DeleteOrganisation);
 app.put('/DVP/API/:version/Organisation/Activate/:state', authorization({resource:"organisationManage", action:"write"}), organisationService.ActivateOrganisation);
 app.get('/DVP/API/:version/Organisation/Packages/:company/:type?', authorization({resource:"package", action:"read"}), organisationService.GetOrganisationPackagesByType);
-
-
-
 
 app.get('/DVP/API/:version/Organization/:company/exists', organisationService.IsOrganizationExists);
 
