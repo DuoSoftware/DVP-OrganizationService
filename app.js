@@ -4,7 +4,6 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var errorhandler = require('errorhandler');
 var session = require('express-session');
-require('./auth');
 var cors = require('cors');
 var app = express();
 
