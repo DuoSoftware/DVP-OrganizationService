@@ -1,0 +1,43 @@
+{
+  "name": "dvp-organizationservice",
+  "version": "1.0.0",
+  "description": "Packaging & Organization service for duo voice platform",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "biguint-format": "^1.0.1",
+    "body-parser": "^1.19.0",
+    "config": "^3.2.5",
+    "connect-ensure-login": "^0.1.1",
+    "cookie-parser": "^1.4.4",
+    "cors": "^2.8.5",
+    "dvp-common": "^1.1.0",
+    "dvp-healthcheck": "^1.0.3",
+    "dvp-mongomodels": "5.3.10",
+    "errorhandler": "^1.5.1",
+    "express": "^4.17.1",
+    "express-jwt": "^5.3.1",
+    "express-session": "^1.17.0",
+    "flake-idgen": "^1.1.2",
+    "ioredis": "^4.14.1",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.24.0",
+    "node-uuid": "^1.4.8",
+    "oauth2orize": "^1.11.0",
+    "oauth2orize-jwt-bearer": "^0.2.0",
+    "passport": "^0.4.1",
+    "passport-http": "^0.3.0",
+    "passport-http-bearer": "^1.0.1",
+    "passport-local": "^1.0.0",
+    "passport-oauth2-client-password": "^0.1.2",
+    "request": "^2.88.0",
+    "restify": "^8.5.1",
+    "restify-jwt": "^0.4.0",
+    "url": "^0.11.0",
+    "util": "^0.12.1"
+  }
+}
