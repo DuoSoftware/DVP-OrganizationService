@@ -183,6 +183,12 @@ app.put(
   organisationService.AssignPackageToOrganisation
 );
 app.put(
+  "/DVP/API/:version/Organisation/:company/Package/:packageName/Unit/:unitName/:topUpCount",
+  jwt({ secret: secret.Secret }),
+  authorization({ resource: "tenant", action: "write" }),
+  organisationService.AssignPackageToOrganisation
+);
+app.put(
   "/DVP/API/:version/Organisation/:company/Activate/:state",
   jwt({ secret: secret.Secret }),
   authorization({ resource: "tenant", action: "write" }),
