@@ -32,7 +32,6 @@ process.on("unhandledRejection", err => {
   console.log("[Unhandled Rejection] Node Exiting...");
   process.exit(1);
 });
-app.set("view engine", "ejs");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
