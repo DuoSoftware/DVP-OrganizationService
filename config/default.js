@@ -1,80 +1,110 @@
 module.exports = {
   DB: {
-    Type: "<VALUE>",
-    User: "<VALUE>",
-    Password: "<VALUE>",
-    Port: 0,
-    Host: "<VALUE>",
-    Database: "<VALUE>"
+    Type: "postgres",
+    User: "",
+    Password: "",
+    Port: 5432,
+    Host: "",
+    Database: ""
   },
 
   Redis: {
-    mode: "<VALUE>", //instance, cluster, sentinel
-    ip: "<VALUE>",
+    mode: "instance", //instance, cluster, sentinel
+    ip: "",
     port: 6379,
-    user: "<VALUE>",
-    password: "<VALUE>",
+    user: "",
+    password: "",
+    db: 0,
     sentinels: {
-      hosts: "<VALUE>",
-      port: 0,
-      name: "<VALUE>"
+      hosts: "",
+      port: 16389,
+      name: "redis-cluster"
     }
   },
 
   Security: {
-    ip: "<VALUE>",
-    port: 0,
-    user: "<VALUE>",
-    password: "<VALUE>",
-    mode: "<VALUE>", //instance, cluster, sentinel
+    ip: "",
+    port: 6379,
+    user: "",
+    password: "",
+    db: 0,
+    mode: "instance", //instance, cluster, sentinel
     sentinels: {
-      hosts: "<VALUE>",
-      port: 0,
-      name: "<VALUE>"
+      hosts: "",
+      port: 16389,
+      name: "redis-cluster"
     }
   },
 
   Host: {
+    profilesearch: "secondary",
     resource: "cluster",
     vdomain: "localhost",
     domain: "localhost",
-    port: "9004",
+    port: "3638",
     version: "1.0.0.0"
   },
 
-  Mongo: {
-    ip: "<VALUE>",
-    port: "<VALUE>",
-    dbname: "<VALUE>",
-    password: "<VALUE>",
-    user: "<VALUE>",
-    replicaset: "<VALUE>"
+  LBServer: {
+    ip: "localhost",
+    port: "3434"
   },
+
+  RabbitMQ: {
+    ip: "",
+    port: 5672,
+    user: "",
+    password: "",
+    vhost: "/"
+  },
+
+  Mongo: {
+    ip: "",
+    port: "27017",
+    dbname: "",
+    password: "",
+    user: "",
+    type: "mongodb+srv"
+  },
+
   Services: {
-    accessToken: "<VALUE>",
-    resourceServiceHost: "<VALUE>",
-    resourceServicePort: "<VALUE>",
-    resourceServiceVersion: "<VALUE>",
-    sipuserendpointserviceHost: "<VALUE>",
-    sipuserendpointservicePort: "<VALUE>",
-    sipuserendpointserviceVersion: "<VALUE>",
-    clusterconfigserviceHost: "<VALUE>",
-    clusterconfigservicePort: "<VALUE>",
-    clusterconfigserviceVersion: "<VALUE>",
-    billingserviceHost: "<VALUE>",
-    billingservicePort: "<VALUE>",
-    billingserviceVersion: "<VALUE>",
-    liteticketHost: "<VALUE>",
-    liteticketPort: "<VALUE>",
-    liteticketVersion: "<VALUE>",
-    fileserviceHost: "<VALUE>",
-    fileservicePort: "<VALUE>",
-    fileserviceVersion: "<VALUE>"
+    accessToken:
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdWtpdGhhIiwianRpIjoiYWEzOGRmZWYtNDFhOC00MWUyLTgwMzktOTJjZTY0YjM4ZDFmIiwic3ViIjoiNTZhOWU3NTlmYjA3MTkwN2EwMDAwMDAxMjVkOWU4MGI1YzdjNGY5ODQ2NmY5MjExNzk2ZWJmNDMiLCJleHAiOjE5MDIzODExMTgsInRlbmFudCI6LTEsImNvbXBhbnkiOi0xLCJzY29wZSI6W3sicmVzb3VyY2UiOiJhbGwiLCJhY3Rpb25zIjoiYWxsIn1dLCJpYXQiOjE0NzAzODExMTh9.Gmlu00Uj66Fzts-w6qEwNUz46XYGzE8wHUhAJOFtiRo",
+    resourceServiceHost: "resourceservice.app.veery.cloud",
+    resourceServicePort: "8831",
+    resourceServiceVersion: "1.0.0.0",
+    sipuserendpointserviceHost: "sipuserendpointservice.app.veery.cloud",
+    sipuserendpointservicePort: "8086",
+    sipuserendpointserviceVersion: "1.0.0.0",
+    ruleserviceHost: "ruleservice.app1.veery.cloud",
+    ruleservicePort: "8816",
+    ruleserviceVersion: "1.0.0.0",
+    fileserviceHost: "fileservice.app1.veery.cloud",
+    fileservicePort: "5648",
+    fileserviceVersion: "1.0.0.0",
+    liteticketHost: "liteticket.app1.veery.cloud",
+    liteticketPort: "3635",
+    liteticketVersion: "1.0.0.0",
+    clusterconfigserviceHost: "clusterconfig.app1.veery.cloud",
+    clusterconfigservicePort: "3636",
+    clusterconfigserviceVersion: "1.0.0.0",
+    billingserviceHost: "billingservice.app.veery.cloud",
+    billingservicePort: "4444",
+    billingserviceVersion: "1.0.0.0",
+    notificationServiceHost: "notificationservice.app1.veery.cloud",
+    notificationServicePort: "8089",
+    notificationServiceVersion: "1.0.0.0"
   },
 
   Tenant: {
-    activeTenant: 0
+    activeTenant: 1,
+    activeCompany: 0
   },
-  ClusterName: "Test",
-  Provision: 1
+
+  ClusterName: "DemoCloud",
+  Provision: 1,
+
+  ActiveDirectory: {
+    groupName: "FaceTone"
+  }
 };
