@@ -60,10 +60,10 @@ module.exports = {
 
   Mongo: {
     ip: "",
-    port: "27017",
-    dbname: "",
+    port: "",
+    dbname: "dvpdb",
     password: "",
-    user: "",
+    user: "facetone",
     type: "mongodb+srv"
   },
 
