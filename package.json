@@ -4,28 +4,29 @@
   "description": "Packaging & Organization service for duo voice platform",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "biguint-format": "^1.0.1",
+    "biguint-format": "^1.0.2",
     "body-parser": "^1.19.0",
-    "config": "^3.2.5",
+    "config": "^3.3.1",
     "connect-ensure-login": "^0.1.1",
-    "cookie-parser": "^1.4.4",
+    "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "dvp-common": "^1.1.0",
     "dvp-healthcheck": "^1.0.3",
-    "dvp-mongomodels": "5.3.10",
+    "dvp-mongomodels": "^6.1.0",
     "errorhandler": "^1.5.1",
     "express": "^4.17.1",
-    "express-jwt": "^5.3.1",
-    "express-session": "^1.17.0",
-    "flake-idgen": "^1.1.2",
-    "ioredis": "^4.14.1",
+    "express-jwt": "^5.3.3",
+    "express-session": "^1.17.1",
+    "flake-idgen": "^1.4.0",
+    "ioredis": "^4.16.3",
     "jsonwebtoken": "^8.5.1",
-    "moment": "^2.24.0",
+    "moment": "^2.25.1",
     "node-uuid": "^1.4.8",
     "oauth2orize": "^1.11.0",
     "oauth2orize-jwt-bearer": "^0.2.0",
@@ -38,6 +39,6 @@
     "restify": "^8.5.1",
     "restify-jwt": "^0.4.0",
     "url": "^0.11.0",
-    "util": "^0.12.1"
+    "util": "^0.12.3"
   }
 }
