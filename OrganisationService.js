@@ -855,7 +855,7 @@ function AssignPackageToOrganisation(req,res){
 function AssignTaskToOrganisation(company, tenant, taskList){
     var taskInfoUrl = util.format("http://%s/DVP/API/%s/ResourceManager/TaskInfo",config.Services.resourceServiceHost, config.Services.resourceServiceVersion);
     var taskUrl = util.format("http://%s/DVP/API/%s/ResourceManager/Task",config.Services.resourceServiceHost, config.Services.resourceServiceVersion);
-    if(validator.isIP(config.Services.resourceServiceHost))
+    if(config.Services.dynamicPort || validator.isIP(config.Services.resourceServiceHost))
     {
         taskUrl = util.format("http://%s:%s/DVP/API/%s/ResourceManager/Task", config.Services.resourceServiceHost, config.Services.resourceServicePort, config.Services.resourceServiceVersion);
         taskInfoUrl = util.format("http://%s:%s/DVP/API/%s/ResourceManager/TaskInfo", config.Services.resourceServiceHost, config.Services.resourceServicePort, config.Services.resourceServiceVersion);
@@ -894,13 +894,13 @@ function AssignContextAndCloudEndUserToOrganisation(company, tenant, domain){
     var contextUrl = util.format("http://%s/DVP/API/%s/SipUser/Context",config.Services.sipuserendpointserviceHost, config.Services.sipuserendpointserviceVersion);
     var transferCodesUrl = util.format("http://%s/DVP/API/%s/SipUser/TransferCode",config.Services.sipuserendpointserviceHost, config.Services.sipuserendpointserviceVersion);
     var cloudEndUserUrl = util.format("http://%s/DVP/API/%s/CloudConfiguration/DefaultCloudEndUser",config.Services.clusterconfigserviceHost, config.Services.clusterconfigserviceVersion);
-    if(validator.isIP(config.Services.sipuserendpointserviceHost))
+    if(config.Services.dynamicPort || validator.isIP(config.Services.sipuserendpointserviceHost))
     {
         contextUrl = util.format("http://%s:%s/DVP/API/%s/SipUser/Context", config.Services.sipuserendpointserviceHost, config.Services.sipuserendpointservicePort, config.Services.sipuserendpointserviceVersion);
         transferCodesUrl = util.format("http://%s:%s/DVP/API/%s/SipUser/TransferCode",config.Services.sipuserendpointserviceHost, config.Services.sipuserendpointservicePort, config.Services.sipuserendpointserviceVersion);
     }
 
-    if(validator.isIP(config.Services.clusterconfigserviceHost))
+    if(config.Services.dynamicPort || validator.isIP(config.Services.clusterconfigserviceHost))
     {
         cloudEndUserUrl = util.format("http://%s:%s/DVP/API/%s/CloudConfiguration/DefaultCloudEndUser", config.Services.clusterconfigserviceHost, config.Services.clusterconfigservicePort, config.Services.clusterconfigserviceVersion);
     }
@@ -976,7 +976,7 @@ function AssignContextAndCloudEndUserToOrganisation(company, tenant, domain){
 function AddDefaultRule(company, tenant){
     var ruleserviceUrl = util.format("http://%s/DVP/API/%s/CallRuleApi/DefaultRule",config.Services.ruleserviceHost, config.Services.ruleserviceVersion);
 
-    if(validator.isIP(config.Services.ruleserviceHost))
+    if(config.Services.dynamicPort || validator.isIP(config.Services.ruleserviceHost))
     {
         ruleserviceUrl = util.format("http://%s:%s/DVP/API/%s/CallRuleApi/DefaultRule",config.Services.ruleserviceHost, config.Services.ruleservicePort, config.Services.ruleserviceVersion);
     }
@@ -1012,7 +1012,7 @@ function AddDefaultFileCategories(company, tenant){
 
     var fileserviceUrl = util.format("http://%s/DVP/API/%s/FileService/FileCategory/Bulk",config.Services.fileserviceHost, config.Services.fileserviceVersion);
 
-    if(validator.isIP(config.Services.fileserviceHost))
+    if(config.Services.dynamicPort || validator.isIP(config.Services.fileserviceHost))
     {
         fileserviceUrl = util.format("http://%s:%s/DVP/API/%s/FileService/FileCategory/Bulk",config.Services.fileserviceHost, config.Services.fileservicePort, config.Services.fileserviceVersion);
     }
@@ -1032,7 +1032,7 @@ function AddDefaultFileCategories(company, tenant){
 function AddDefaultTicketTypes(company, tenant){
     var ticketserviceUrl = util.format("http://%s/DVP/API/%s/TicketTypes",config.Services.liteticketHost, config.Services.liteticketVersion);
 
-    if(validator.isIP(config.Services.liteticketHost))
+    if(config.Services.dynamicPort || validator.isIP(config.Services.liteticketHost))
     {
         ticketserviceUrl = util.format("http://%s:%s/DVP/API/%s/TicketTypes",config.Services.liteticketHost, config.Services.liteticketPort, config.Services.liteticketVersion);
     }
@@ -1890,7 +1890,7 @@ function GetBillingDetails(req, res){
 function RequestToBill(company, tenant, billInfo, callback){
     try {
         var contextUrl = util.format("http://%s/DVP/API/%s/Billing/BuyPackage", config.Services.billingserviceHost, config.Services.billingserviceVersion);
-        if (validator.isIP(config.Services.billingserviceHost)) {
+        if (config.Services.dynamicPort || validator.isIP(config.Services.billingserviceHost)) {
             contextUrl = util.format("http://%s:%s/DVP/API/%s/Billing/BuyPackage", config.Services.billingserviceHost, config.Services.billingservicePort, config.Services.billingserviceVersion);
         }
         var companyInfo = util.format("%d:%d", tenant, company);
