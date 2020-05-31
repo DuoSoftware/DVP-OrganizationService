@@ -2,7 +2,7 @@
  * Created by a on 6/26/2016.
  */
 var ExternalUserAccessFields = require('dvp-mongomodels/model/ExternalUserAccessConfig').ExternalUserAccessFields;
-var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
+var messageFormatter = require('dvp-common-lite/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 
 function AddDefaultAccessibleFields(company, tenant)
 {

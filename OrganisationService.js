@@ -3,14 +3,14 @@
  */
 var redis = require('ioredis');
 var config = require('config');
-var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
+var logger = require('dvp-common-lite/LogHandler/CommonLogHandler.js').logger;
 var Org = require('dvp-mongomodels/model/Organisation');
 var VPackage = require('dvp-mongomodels/model/Package');
 var PackageUnit = require('dvp-mongomodels/model/PackageUnit');
 var AbandonCall = require('dvp-mongomodels/model/AbandonRedialConfig');
 var Console = require('dvp-mongomodels/model/Console');
 var EventEmitter = require('events').EventEmitter;
-var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
+var messageFormatter = require('dvp-common-lite/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var util = require('util');
 var restClientHandler = require('./RestClient.js');
 var validator = require('validator');
