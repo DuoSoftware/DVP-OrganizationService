@@ -21,13 +21,13 @@ var tenantService = require("./TenantService");
 var mongomodels = require("dvp-mongomodels");
 
 var port = config.Host.port || 3000;
-process.on("uncaughtException", function(err) {
+process.on("uncaughtException", function (err) {
   console.error(err);
   console.log("[Unhandled Exception] Node Exiting...");
   process.exit(1);
 });
 
-process.on("unhandledRejection", err => {
+process.on("unhandledRejection", (err) => {
   console.error(err);
   console.log("[Unhandled Rejection] Node Exiting...");
   process.exit(1);
@@ -48,7 +48,7 @@ app.use(cors());
 var hc = new healthcheck(app, {
   redis: organisationService.RedisCon,
   pg: organisationService.DbConn,
-  mongo: mongomodels.connection
+  mongo: mongomodels.connection,
 });
 hc.Initiate();
 
@@ -304,11 +304,13 @@ app.get(
 );
 app.get(
   "/DVP/API/:version/GetBusinessUnitAndGroups/:ResourceId",
+  jwt({ secret: secret.Secret }),
   authorization({ resource: "userGroup", action: "read" }),
   businessUnitService.GetBusinessUnitAndGroupsByResourceId
 );
 app.get(
   "/DVP/API/:version/BusinessUnit/:name/UserCount",
+  jwt({ secret: secret.Secret }),
   authorization({ resource: "userGroup", action: "read" }),
   businessUnitService.GetUserCountOfBusinessUnit
 );
@@ -345,6 +347,6 @@ app.get(
   tenantService.GetBasicCompanyDetailsByTenant
 );
 
-app.listen(port, function() {
+app.listen(port, function () {
   logger.info("DVP-OrganizationService.main Server listening at %d", port);
 });
