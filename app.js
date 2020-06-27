@@ -341,7 +341,7 @@ app.get(
   tenantService.GetCompanyDomain
 );
 app.get(
-  "/DVP/API/:version/Tenant/Company/BasicInfo",
+  "/DVP/API/:version/Tenant/CompanyInfo",
   jwt({ secret: secret.Secret }),
   authorization({ resource: "tenant", action: "read" }),
   tenantService.GetBasicCompanyDetailsByTenant
