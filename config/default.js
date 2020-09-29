@@ -64,7 +64,7 @@ module.exports = {
     dbname: "dvpdb",
     password: "",
     user: "facetone",
-    type: "mongodb+srv"
+    type: "mongodb"
   },
 
   Services: {
