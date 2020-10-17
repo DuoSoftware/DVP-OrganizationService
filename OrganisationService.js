@@ -379,6 +379,31 @@ function GetOrganisationConsoleAccessLimits(req, res){
     });
 }
 
+function GetOrganisationConcurrentAccessLimits(req, res){
+    logger.debug("DVP-UserService.GetOrganisationConcurrentAccessLimits Internal method ");
+    var tenant = parseInt(req.user.tenant);
+    var company = parseInt(req.user.company);
+    var owner = req.user.iss;
+    var jsonString;
+    Org.findOne({ownerId:owner, tenant: tenant, id: company}, function(err, org) {
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "Get Organisation Concurrent Access Limits Failed", false, undefined);
+        }else{
+
+            if(org) {
+                var accessLimits = {concurrentAccessLimits: org.concurrentAccessLimits};
+                jsonString = messageFormatter.FormatMessage(undefined, "Get Organisation Concurrent Access Limits Successful", true, accessLimits);
+            }
+            else{
+
+                jsonString = messageFormatter.FormatMessage(err, "Get Organisation Concurrent Access Limits Failed", false, undefined);
+            }
+
+        }
+        res.end(jsonString);
+    });
+}
+
 function DeleteOrganisation(req,res){
     logger.debug("DVP-UserService.DeleteOrganisation Internal method ");
 
@@ -763,6 +788,45 @@ var SetPackageToOrganisation = function(company, tenant, domainData, vPackage, o
         }
     }
 
+    if (vPackage.concurrentAccessLimit && vPackage.concurrentAccessLimit.length > 0) {
+        for (var i = 0; i < vPackage.concurrentAccessLimit.length; i++) {
+            var vCal = vPackage.concurrentAccessLimit[i];
+            var tempCal = {
+                accessType: vCal.accessType,
+                accessLimit: vCal.accessLimit,
+                currentAccess: []
+            };
+            var count = 0;
+            if (org.concurrentAccessLimits.length > 0) {
+                for (var j = 0; j < org.concurrentAccessLimits.length; j++) {
+                    count++;
+                    var cal = org.concurrentAccessLimits[j];
+                    if (cal.accessType == vCal.accessType) {
+                        if(vPackage.navigationType.toLowerCase() === 'user'){ // if user package is bought increment access limit, no replacement
+                            org.concurrentAccessLimits[j].accessLimit += tempCal.accessLimit;
+                        }
+                        else {
+                            org.concurrentAccessLimits[j].accessLimit = tempCal.accessLimit;
+                        }
+                        break;
+                    }
+                    if (count == org.concurrentAccessLimits.length) {
+                        org.concurrentAccessLimits.push(tempCal);
+
+                        if (vCal.accessType == "admin") {
+                            tempCal.currentAccess.push(org.ownerId);
+                        }
+                    }
+                }
+            } else {
+                if (vCal.accessType == "admin") {
+                    tempCal.currentAccess.push(org.ownerId);
+                }
+                org.concurrentAccessLimits.push(tempCal);
+            }
+        }
+    }
+
     var er = ExtractResources(vPackage.resources);
     er.on('endExtractResources', function (userScopes) {
         if (userScopes) {
@@ -1098,6 +1162,18 @@ function RemovePackageFromOrganisation(req,res){
                                 var cal = org.consoleAccessLimits[j];
                                 if (cal.accessType == vCal.accessType) {
                                     org.consoleAccessLimits[j].accessLimit = org.consoleAccessLimits[j].accessLimit - tempCal.accessLimit;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        for(var i in vPackage.concurrentAccessLimit){
+                            var vCal = vPackage.concurrentAccessLimit[i];
+                            var tempCal = {accessType: vCal.accessType, accessLimit: vCal.accessLimit, currentAccess: []};
+                            for (var j in org.concurrentAccessLimits) {
+                                var cal = org.concurrentAccessLimits[j];
+                                if (cal.accessType == vCal.accessType) {
+                                    org.concurrentAccessLimits[j].accessLimit = org.concurrentAccessLimits[j].accessLimit - tempCal.accessLimit;
                                     break;
                                 }
                             }
