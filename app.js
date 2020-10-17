@@ -46,8 +46,6 @@ app.use(cors());
 //app.use(jwt({secret: secret.Secret}));
 
 var hc = new healthcheck(app, {
-  redis: organisationService.RedisCon,
-  pg: organisationService.DbConn,
   mongo: mongomodels.connection,
 });
 hc.Initiate();
