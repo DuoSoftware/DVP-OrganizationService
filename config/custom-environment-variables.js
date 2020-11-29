@@ -76,7 +76,10 @@ module.exports = {
     clusterconfigserviceVersion: "SYS_CLUSTERCONFIG_VERSION",
     billingserviceHost: "SYS_BILLINGSERVICE_HOST",
     billingservicePort: "SYS_BILLINGSERVICE_PORT",
-    billingserviceVersion: "SYS_BILLINGSERVICE_VERSION"
+    billingserviceVersion: "SYS_BILLINGSERVICE_VERSION",    
+    scheduleWorkerServiceHost: "SYS_SCHEDULEWORKERSERVICE_HOST",
+    scheduleWorkerServicePort: "SYS_SCHEDULEWORKERSERVICE_PORT",
+    scheduleWorkerServiceVersion: "SYS_SCHEDULEWORKERSERVICE_VERSION",
   },
 
   Tenant: {
