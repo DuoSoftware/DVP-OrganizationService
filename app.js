@@ -7,12 +7,12 @@ var session = require("express-session");
 var cors = require("cors");
 var app = express();
 
-var logger = require("dvp-common/LogHandler/CommonLogHandler.js").logger;
+var logger = require("dvp-common-lite/LogHandler/CommonLogHandler.js").logger;
 var organisationService = require("./OrganisationService");
 var config = require("config");
-var jwt = require("restify-jwt");
-var secret = require("dvp-common/Authentication/Secret.js");
-var authorization = require("dvp-common/Authentication/Authorization.js");
+var jwt = require("express-jwt");
+var secret = require("dvp-common-lite/Authentication/Secret.js");
+var authorization = require("dvp-common-lite/Authentication/Authorization.js");
 var healthcheck = require("dvp-healthcheck/DBHealthChecker");
 
 // tenant operations
@@ -21,13 +21,13 @@ var tenantService = require("./TenantService");
 var mongomodels = require("dvp-mongomodels");
 
 var port = config.Host.port || 3000;
-process.on("uncaughtException", function(err) {
+process.on("uncaughtException", function (err) {
   console.error(err);
   console.log("[Unhandled Exception] Node Exiting...");
   process.exit(1);
 });
 
-process.on("unhandledRejection", err => {
+process.on("unhandledRejection", (err) => {
   console.error(err);
   console.log("[Unhandled Rejection] Node Exiting...");
   process.exit(1);
@@ -46,9 +46,7 @@ app.use(cors());
 //app.use(jwt({secret: secret.Secret}));
 
 var hc = new healthcheck(app, {
-  redis: organisationService.RedisCon,
-  pg: organisationService.DbConn,
-  mongo: mongomodels.connection
+  mongo: mongomodels.connection,
 });
 hc.Initiate();
 
@@ -304,11 +302,13 @@ app.get(
 );
 app.get(
   "/DVP/API/:version/GetBusinessUnitAndGroups/:ResourceId",
+  jwt({ secret: secret.Secret }),
   authorization({ resource: "userGroup", action: "read" }),
   businessUnitService.GetBusinessUnitAndGroupsByResourceId
 );
 app.get(
   "/DVP/API/:version/BusinessUnit/:name/UserCount",
+  jwt({ secret: secret.Secret }),
   authorization({ resource: "userGroup", action: "read" }),
   businessUnitService.GetUserCountOfBusinessUnit
 );
@@ -339,12 +339,12 @@ app.get(
   tenantService.GetCompanyDomain
 );
 app.get(
-  "/DVP/API/:version/Tenant/Company/BasicInfo",
+  "/DVP/API/:version/TenantInfo/company",
   jwt({ secret: secret.Secret }),
   authorization({ resource: "tenant", action: "read" }),
   tenantService.GetBasicCompanyDetailsByTenant
 );
 
-app.listen(port, function() {
+app.listen(port, function () {
   logger.info("DVP-OrganizationService.main Server listening at %d", port);
 });

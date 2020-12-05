@@ -1,9 +1,9 @@
 /**
  * Created by Pawan on 8/1/2016.
  */
-var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
+var logger = require('dvp-common-lite/LogHandler/CommonLogHandler.js').logger;
 var Tenant = require('dvp-mongomodels/model/Tenant').Tenant;
-var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
+var messageFormatter = require('dvp-common-lite/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var Org = require('dvp-mongomodels/model/Organisation');
 
 function CreateTenant(req, res) {

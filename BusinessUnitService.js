@@ -2,8 +2,8 @@
  * Created by Pawan on 12/29/2017.
  */
 
-var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
-var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
+var logger = require('dvp-common-lite/LogHandler/CommonLogHandler.js').logger;
+var messageFormatter = require('dvp-common-lite/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var BusinessUnit = require('dvp-mongomodels/model/BusinessUnit').BusinessUnit;
 var UserAccount = require('dvp-mongomodels/model/UserAccount');
 var unique = require('array-unique');
