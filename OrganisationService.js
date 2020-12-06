@@ -2137,6 +2137,7 @@ function GetOrganisationPackagesByType(req, res) {
 }
 
 function CreateDashboardServiceSchdule(company, tenant, timezone, isUpdate, callback) {
+    logger.debug("Creating DashboardService Schdule");
     // Send request to schduler service /DVP/API/'+version+'/Cron
     try {
         var addCronTaskUrl = util.format("http://%s/DVP/API/%s/Cron", config.Services.scheduleWorkerServiceHost, config.Services.scheduleWorkerServiceVersion);
@@ -2159,6 +2160,8 @@ function CreateDashboardServiceSchdule(company, tenant, timezone, isUpdate, call
             Timezone: timezone.tz
         }
 
+        logger.debug("CreateDashboardServiceSchdule 'cronObj': " + JSON.stringify(cronObj));
+
         if (isUpdate) {
             var deleteCronTaskUrl = `http://${config.Services.scheduleWorkerServiceHost}/DVP/API/${config.Services.scheduleWorkerServiceVersion}/Cron/Reference/${reference}`;
             if (config.Services.dynamicPort || validator.isIP(config.Services.scheduleWorkerServiceHost)) {
@@ -2167,14 +2170,19 @@ function CreateDashboardServiceSchdule(company, tenant, timezone, isUpdate, call
             restClientHandler.DoDelete(companyInfo, deleteCronTaskUrl, null, function (err, res1, result) {
                 if (err) {
                     callback(err);
+                    logger.error("Error: Deleting DashboardService Schdule" + err);
                 } else {
                     restClientHandler.DoPost(companyInfo, addCronTaskUrl, cronObj, function (err, res1, result) {
+                        logger.debug("Deleted DashboardService Schdule");
                         if (err) {
                             callback(err);
+                            logger.error("Error: Creating DashboardService Schdule" + err);
                         } else {
                             if (res1.statusCode === 200) {
                                 callback(undefined);
+                                logger.debug("Created DashboardService Schdule");
                             } else {
+                                logger.error("Error: Creating DashboardService Schdule" + result);
                                 callback(new Error(result));
                             }
                         }
@@ -2186,10 +2194,13 @@ function CreateDashboardServiceSchdule(company, tenant, timezone, isUpdate, call
             restClientHandler.DoPost(companyInfo, addCronTaskUrl, cronObj, function (err, res1, result) {
                 if (err) {
                     callback(err);
+                    logger.error("Error: Creating DashboardService Schdule" + err);
                 } else {
                     if (res1.statusCode === 200) {
                         callback(undefined);
+                        logger.debug("Created DashboardService Schdule");
                     } else {
+                        logger.error("Error: Creating DashboardService Schdule" + result);
                         callback(new Error(result));
                     }
                 }
@@ -2197,6 +2208,7 @@ function CreateDashboardServiceSchdule(company, tenant, timezone, isUpdate, call
         }
     } catch (ex) {
         callback(ex);
+        logger.error("Error: CreateDashboardServiceSchdule" + ex);
     }
 }
 
