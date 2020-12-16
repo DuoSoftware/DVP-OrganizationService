@@ -47,7 +47,10 @@ module.exports = {
     vdomain: "LB_FRONTEND",
     domain: "HOST_NAME",
     port: "HOST_ORGANIZATIONSERVICE_PORT",
-    version: "HOST_VERSION"
+    version: "HOST_VERSION",
+    emailQueueName:"SYS_EMAIL_QUEUE_NAME",
+    smsQueueName: "SYS_SMS_QUEUE_NAME",
+    defaultMailHost: "SYS_DEFAULT_MAIL_HOST"
   },
 
   LBServer: {
