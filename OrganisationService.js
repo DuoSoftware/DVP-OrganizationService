@@ -1590,7 +1590,7 @@ function CreateOrganisationStanAlone(user, companyname, timezone, callback) {
 
 function AssignPackageUnitToOrganisation(req,res){
 
-    logger.debug("DVP-UserService.AssignPackageUnitToOrganisation Internal method ");
+    logger.debug("DVP-OrganisationService.AssignPackageUnitToOrganisation Internal method ");
     logger.debug("Package:: "+req.params.packageName);
     logger.debug("PackageUnit:: "+req.params.unitName);
 
