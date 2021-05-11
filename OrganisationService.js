@@ -29,9 +29,9 @@ var redisdb = config.Redis.db;
 
 
 
-var redisSetting =  {
-    port:redisport,
-    host:redisip,
+var redisSetting = {
+    port: redisport,
+    host: redisip,
     family: 4,
     password: redispass,
     db: redisdb,
@@ -45,26 +45,26 @@ var redisSetting =  {
     }
 };
 
-if(redismode == 'sentinel'){
+if (redismode == 'sentinel') {
 
-    if(config.Redis.sentinels && config.Redis.sentinels.hosts && config.Redis.sentinels.port && config.Redis.sentinels.name){
+    if (config.Redis.sentinels && config.Redis.sentinels.hosts && config.Redis.sentinels.port && config.Redis.sentinels.name) {
         var sentinelHosts = config.Redis.sentinels.hosts.split(',');
-        if(Array.isArray(sentinelHosts) && sentinelHosts.length > 2){
+        if (Array.isArray(sentinelHosts) && sentinelHosts.length > 2) {
             var sentinelConnections = [];
 
-            sentinelHosts.forEach(function(item){
+            sentinelHosts.forEach(function (item) {
 
-                sentinelConnections.push({host: item, port:config.Redis.sentinels.port})
+                sentinelConnections.push({ host: item, port: config.Redis.sentinels.port })
 
             })
 
             redisSetting = {
-                sentinels:sentinelConnections,
+                sentinels: sentinelConnections,
                 name: config.Redis.sentinels.name,
                 password: redispass
             }
 
-        }else{
+        } else {
 
             console.log("No enough sentinel servers found .........");
         }
@@ -74,26 +74,27 @@ if(redismode == 'sentinel'){
 
 var client = undefined;
 
-if(redismode != "cluster") {
+if (redismode != "cluster") {
     client = new redis(redisSetting);
-}else{
+} else {
 
     var redisHosts = redisip.split(",");
-    if(Array.isArray(redisHosts)){
+    if (Array.isArray(redisHosts)) {
 
 
         redisSetting = [];
-        redisHosts.forEach(function(item){
+        redisHosts.forEach(function (item) {
             redisSetting.push({
                 host: item,
                 port: redisport,
                 family: 4,
-                password: redispass});
+                password: redispass
+            });
         });
 
         var client = new redis.Cluster([redisSetting]);
 
-    }else{
+    } else {
 
         client = new redis(redisSetting);
     }
@@ -105,16 +106,16 @@ client.on("error", function (err) {
     console.log("Error " + err);
 });
 
-function FilterObjFromArray(itemArray, field, value){
+function FilterObjFromArray(itemArray, field, value) {
     var resultObj;
-    if(itemArray) {
+    if (itemArray) {
         for (var i = 0; i < itemArray.length; i++) {
             var item = itemArray[i];
             var qParams = field.split('.');
-            if(qParams && qParams.length >1){
+            if (qParams && qParams.length > 1) {
                 var qData = item[qParams[0]];
-                for(var j=1;j<qParams.length;j++){
-                    if(qData) {
+                for (var j = 1; j < qParams.length; j++) {
+                    if (qData) {
                         qData = qData[qParams[j]];
                     }
                 }
@@ -123,7 +124,7 @@ function FilterObjFromArray(itemArray, field, value){
                     resultObj = item;
                     break;
                 }
-            }else {
+            } else {
                 if (item[field] == value) {
                     resultObj = item;
                     break;
@@ -131,23 +132,23 @@ function FilterObjFromArray(itemArray, field, value){
             }
         }
         return resultObj;
-    }else{
+    } else {
         return undefined;
     }
 }
 
-function multipleAllowed(navigationType){
+function multipleAllowed(navigationType) {
     var allowedNavTypes = ['user', 'license'];
- 
-    if(allowedNavTypes.indexOf(navigationType.toLowerCase()) == -1)
+
+    if (allowedNavTypes.indexOf(navigationType.toLowerCase()) == -1)
         return false
-    else 
+    else
         return true;
 }
 
 function UniqueArray(array) {
     var processed = [];
-    if(array && Array.isArray(array)) {
+    if (array && Array.isArray(array)) {
         for (var i = array.length - 1; i >= 0; i--) {
             if (array[i] != null) {
                 if (processed.indexOf(array[i]) < 0) {
@@ -158,14 +159,14 @@ function UniqueArray(array) {
             }
         }
         return array;
-    }else{
+    } else {
         return [];
     }
 }
 
 function UniqueObjectArray(array, field) {
     var processed = [];
-    if(array && Array.isArray(array)) {
+    if (array && Array.isArray(array)) {
         for (var i = array.length - 1; i >= 0; i--) {
             if (processed.indexOf(array[i][field]) < 0) {
                 processed.push(array[i][field]);
@@ -174,12 +175,12 @@ function UniqueObjectArray(array, field) {
             }
         }
         return array;
-    }else{
+    } else {
         return [];
     }
 }
 
-function GetNewCompanyId(callback){
+function GetNewCompanyId(callback) {
     client.incr("CompanyCount", function (err, result) {
         if (err) {
             callback(null);
@@ -189,33 +190,33 @@ function GetNewCompanyId(callback){
     });
 }
 
-function SetCompanySpaceLimit(tenant, company, spaceType, limit){
+function SetCompanySpaceLimit(tenant, company, spaceType, limit) {
     var spaceLimitKey = util.format('SpaceLimit:%d:%d:%s', tenant, company, spaceType);
     client.set(spaceLimitKey, JSON.stringify(limit), function (err, result) {
         if (err) {
-            logger.error("Set Company space limit in redis failed: "+ err);
+            logger.error("Set Company space limit in redis failed: " + err);
         } else {
             logger.error("Set Company space limit in redis success.");
         }
     });
 }
 
-function GetOrganisations(req, res){
+function GetOrganisations(req, res) {
     logger.debug("DVP-UserService.GetOrganisations Internal method ");
 
     var tenant = parseInt(req.user.tenant);
     var jsonString;
-    Org.find({tenant: tenant}, function(err, orgs) {
+    Org.find({ tenant: tenant }, function (err, orgs) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Get Organisations Failed", false, undefined);
-        }else{
+        } else {
             jsonString = messageFormatter.FormatMessage(err, "Get Organisations Successful", true, orgs);
         }
         res.end(jsonString);
     });
 }
 
-function GetOrganisationsWithPaging(req, res){
+function GetOrganisationsWithPaging(req, res) {
     logger.debug("DVP-UserService.GetOrganisations Internal method ");
 
     var tenant = parseInt(req.user.tenant);
@@ -227,32 +228,32 @@ function GetOrganisationsWithPaging(req, res){
         skip = page > 0 ? ((page - 1) * size) : 0;
 
 
-    Org.find({tenant: tenant}).skip(skip)
-        .limit(size).sort({created_at: -1}).exec(function(err, orgs) {
-        if (err) {
-            jsonString = messageFormatter.FormatMessage(err, "Get Organisations Failed", false, undefined);
-        }else{
-            jsonString = messageFormatter.FormatMessage(err, "Get Organisations Successful", true, orgs);
-        }
-        res.end(jsonString);
-    });
+    Org.find({ tenant: tenant }).skip(skip)
+        .limit(size).sort({ created_at: -1 }).exec(function (err, orgs) {
+            if (err) {
+                jsonString = messageFormatter.FormatMessage(err, "Get Organisations Failed", false, undefined);
+            } else {
+                jsonString = messageFormatter.FormatMessage(err, "Get Organisations Successful", true, orgs);
+            }
+            res.end(jsonString);
+        });
 }
 
-function GetOrganisation(req, res){
+function GetOrganisation(req, res) {
     logger.debug("DVP-UserService.GetOrganisation Internal method ");
 
     var tenant = parseInt(req.user.tenant);
     var company;
-    if(req.params.company){
+    if (req.params.company) {
         company = parseInt(req.params.company);
-    }else {
+    } else {
         company = parseInt(req.user.company);
     }
     var jsonString;
-    Org.findOne({tenant: tenant, id: company}).populate('tenantRef').populate({path: 'packageDetails.veeryPackage',populate : {path: 'Package'}}).populate('ownerRef' , '-password').exec( function(err, org) {
+    Org.findOne({ tenant: tenant, id: company }).populate('tenantRef').populate({ path: 'packageDetails.veeryPackage', populate: { path: 'Package' } }).populate('ownerRef', '-password').exec(function (err, org) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Get Organisation Failed", false, undefined);
-        }else{
+        } else {
             jsonString = messageFormatter.FormatMessage(err, "Get Organisation Successful", true, org);
         }
         res.end(jsonString);
@@ -260,19 +261,19 @@ function GetOrganisation(req, res){
 }
 
 
-function IsOrganizationExists(req, res){
+function IsOrganizationExists(req, res) {
     logger.debug("DVP-UserService.IsOrganizationExists Internal method ");
 
 
     var jsonString;
-   // Org.findOne({companyName: new RegExp(req.params.company,'i')}, function(err, org) {
-    Org.findOne({companyName: req.params.company}, function(err, org) {
+    // Org.findOne({companyName: new RegExp(req.params.company,'i')}, function(err, org) {
+    Org.findOne({ companyName: req.params.company }, function (err, org) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Get Organisation Failed", false, undefined);
-        }else{
-            if(org) {
+        } else {
+            if (org) {
                 jsonString = messageFormatter.FormatMessage(err, "Get Organisation Successful", true, org);
-            }else{
+            } else {
                 jsonString = messageFormatter.FormatMessage(err, "Get Organisation Failed", false, undefined);
             }
         }
@@ -281,23 +282,23 @@ function IsOrganizationExists(req, res){
 }
 
 
-function GetOrganisationName(req, res){
+function GetOrganisationName(req, res) {
     logger.debug("DVP-UserService.GetOrganisation Internal method ");
 
     var tenant = parseInt(req.params.tenant);
     var company = parseInt(req.params.company);
     var jsonString;
-    Org.findOne({tenant: tenant, id: company},{companyName: 1}, function(err, org) {
+    Org.findOne({ tenant: tenant, id: company }, { companyName: 1 }, function (err, org) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Get Organisation Failed", false, undefined);
-        }else{
+        } else {
             jsonString = messageFormatter.FormatMessage(err, "Get Organisation Successful", true, org);
         }
         res.end(jsonString);
     });
 }
 
-function GetOrganisationPackages(req, res){
+function GetOrganisationPackages(req, res) {
     logger.debug("DVP-UserService.GetOrganisationPackages Internal method ");
 
     var tenant = parseInt(req.user.tenant);
@@ -305,7 +306,7 @@ function GetOrganisationPackages(req, res){
     var owner = req.user.iss;
     var jsonString;
     try {
-        Org.findOne({ownerId: owner, tenant: tenant, id: company}, function (err, org) {
+        Org.findOne({ ownerId: owner, tenant: tenant, id: company }, function (err, org) {
             if (err) {
                 jsonString = messageFormatter.FormatMessage(err, "Get Organisation Failed", false, undefined);
             } else {
@@ -321,30 +322,30 @@ function GetOrganisationPackages(req, res){
             }
             res.end(jsonString);
         });
-    }catch(ex){
+    } catch (ex) {
         jsonString = messageFormatter.FormatMessage(err, "Get Organisation Failed", false, undefined);
         res.end(jsonString);
         console.log(ex);
     }
 }
 
-function GetOrganisationPackagesWithDetails(req, res){
+function GetOrganisationPackagesWithDetails(req, res) {
     logger.debug("DVP-UserService.GetOrganisationPackagesWithDetails Internal method ");
 
     var tenant = parseInt(req.user.tenant);
     var company = parseInt(req.user.company);
     var owner = req.user.iss;
     var jsonString;
-    Org.findOne({ownerId:owner, tenant: tenant, id: company}, function(err, org) {
+    Org.findOne({ ownerId: owner, tenant: tenant, id: company }, function (err, org) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Get Organisation Failed", false, undefined);
-        }else{
+        } else {
 
-            if(org) {
-                var cPackages = {packageInfo: org.packageDetails, unitInfo: org.unitDetails};
+            if (org) {
+                var cPackages = { packageInfo: org.packageDetails, unitInfo: org.unitDetails };
                 jsonString = messageFormatter.FormatMessage(undefined, "Get Organisation packages Successful", true, cPackages);
             }
-            else{
+            else {
 
                 jsonString = messageFormatter.FormatMessage(err, "Get Organisation Failed", false, undefined);
             }
@@ -354,22 +355,22 @@ function GetOrganisationPackagesWithDetails(req, res){
     });
 }
 
-function GetOrganisationConsoleAccessLimits(req, res){
+function GetOrganisationConsoleAccessLimits(req, res) {
     logger.debug("DVP-UserService.GetOrganisationConsoleAccessLimits Internal method ");
     var tenant = parseInt(req.user.tenant);
     var company = parseInt(req.user.company);
     var owner = req.user.iss;
     var jsonString;
-    Org.findOne({ownerId:owner, tenant: tenant, id: company}, function(err, org) {
+    Org.findOne({ ownerId: owner, tenant: tenant, id: company }, function (err, org) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Get Organisation Console Access Limits Failed", false, undefined);
-        }else{
+        } else {
 
-            if(org) {
-                var accessLimits = {consoleAccessLimits: org.consoleAccessLimits};
+            if (org) {
+                var accessLimits = { consoleAccessLimits: org.consoleAccessLimits };
                 jsonString = messageFormatter.FormatMessage(undefined, "Get Organisation Console Access Limits Successful", true, accessLimits);
             }
-            else{
+            else {
 
                 jsonString = messageFormatter.FormatMessage(err, "Get Organisation Console Access Limits Failed", false, undefined);
             }
@@ -410,16 +411,16 @@ function DeleteOrganisation(req,res){
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
     var jsonString;
-    UserAccount.find({tenant: tenant, id: company}, function(err, users) {
+    UserAccount.find({ tenant: tenant, id: company }, function (err, users) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Get User Accounts Failed", false, undefined);
             res.end(jsonString);
-        }else{
-            if(users.length>0){
+        } else {
+            if (users.length > 0) {
                 jsonString = messageFormatter.FormatMessage(undefined, "User Accounts are Available, Denied Remove Organisation", false, undefined);
                 res.end(jsonString);
-            }else {
-                Org.findOne({tenant: tenant, id: company}, function (err, org) {
+            } else {
+                Org.findOne({ tenant: tenant, id: company }, function (err, org) {
                     if (err) {
                         jsonString = messageFormatter.FormatMessage(err, "Get Organisation Failed", false, undefined);
                         res.end(jsonString);
@@ -444,24 +445,24 @@ function DeleteOrganisation(req,res){
     });
 }
 
-var AssignPackageToOrganisationLib = function(company, tenant, packageName, requestedUser, addDefaultData, callback){
+var AssignPackageToOrganisationLib = function (company, tenant, packageName, requestedUser, addDefaultData, callback) {
     logger.debug("DVP-UserService.AssignPackageToOrganisation Internal method ");
     logger.debug(packageName);
 
     var jsonString;
 
-    VPackage.findOne({packageName: packageName}, function(err, vPackage) {
+    VPackage.findOne({ packageName: packageName }, function (err, vPackage) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Get Package Failed", false, undefined);
             callback(jsonString);
-        }else{
-            if(vPackage) {
+        } else {
+            if (vPackage) {
                 Org.findOne({
                     tenant: tenant,
                     id: company
                 }).populate('tenantRef').populate({
                     path: 'packageDetails.veeryPackage',
-                    populate: {path: 'Package'}
+                    populate: { path: 'Package' }
                 }).populate('ownerRef', '-password').exec(function (err, org) {
 
                     if (err) {
@@ -470,14 +471,14 @@ var AssignPackageToOrganisationLib = function(company, tenant, packageName, requ
                     } else {
                         if (org) {
 
-                            if(org.ownerRef){
+                            if (org.ownerRef) {
 
-                                UserAccount.findOne({tenant: tenant, company: company, userref: org.ownerRef}).exec(function (err, userAccount) {
+                                UserAccount.findOne({ tenant: tenant, company: company, userref: org.ownerRef }).exec(function (err, userAccount) {
 
-                                    if(err){
+                                    if (err) {
                                         jsonString = messageFormatter.FormatMessage(err, "Find Organisation Owner Failed", false, undefined);
                                         callback(jsonString);
-                                    }else {
+                                    } else {
 
                                         var domainData = "127.0.0.1";
                                         if (org.tenantRef && org.tenantRef.rootDomain) {
@@ -544,7 +545,7 @@ var AssignPackageToOrganisationLib = function(company, tenant, packageName, requ
                                                     org.updated_at = Date.now();
                                                     org.packages.push(packageName);
                                                     //org.packages = UniqueArray(org.packages);
-                                                    org.packageDetails.push({veeryPackage: vPackage._id, buyDate: Date.now()});
+                                                    org.packageDetails.push({ veeryPackage: vPackage._id, buyDate: Date.now() });
 
                                                     if (vPackage.price > 0) {
                                                         RequestToBill(org.id, org.tenant, billingObj, function (err, response) {
@@ -586,7 +587,7 @@ var AssignPackageToOrganisationLib = function(company, tenant, packageName, requ
                                     }
                                 });
 
-                            }else {
+                            } else {
                                 jsonString = messageFormatter.FormatMessage(err, "Find Organisation Owner Failed", false, undefined);
                                 callback(jsonString);
                             }
@@ -598,7 +599,7 @@ var AssignPackageToOrganisationLib = function(company, tenant, packageName, requ
                     }
 
                 });
-            }else{
+            } else {
                 jsonString = messageFormatter.FormatMessage(err, "Find Packahe Failed", false, undefined);
                 callback(jsonString);
             }
@@ -606,36 +607,45 @@ var AssignPackageToOrganisationLib = function(company, tenant, packageName, requ
     });
 };
 
-function UpdateOrganisation(req, res){
+function UpdateOrganisation(req, res) {
     logger.debug("DVP-UserService.UpdateOrganisation Internal method ");
 
-    var company = req.params.company? parseInt(req.params.company): parseInt(req.user.company);
+    var company = req.params.company ? parseInt(req.params.company) : parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
     var jsonString;
 
     req.body.updated_at = Date.now();
-    if(req.body.companyName) {
-        Org.findOneAndUpdate({tenant: tenant, id: company}, {companyName: req.body.companyName, timeZone: req.body.timeZone}, function (err, org) {
+    if (req.body.companyName) {
+        Org.findOneAndUpdate({ tenant: tenant, id: company }, { companyName: req.body.companyName, timeZone: req.body.timeZone }, function (err, org) {
             if (err) {
                 jsonString = messageFormatter.FormatMessage(err, "Update Organisation Failed", false, undefined);
+                res.end(jsonString);
             } else {
-                jsonString = messageFormatter.FormatMessage(err, "Update Organisation Successful", true, org);
+                if (req.body.timeZone) {
+                    CreateDashboardServiceSchdule(company, tenant, req.body.timeZone, true, function (err, response) {
+                        if (err) {
+                            jsonString = messageFormatter.FormatMessage(err, "Update Organisation Failed: Dashboard Service Update Issue", false, undefined);
+                        } else {
+                            jsonString = messageFormatter.FormatMessage(err, "Update Organisation Successful", true, org);
+                        }
+                        res.end(jsonString);
+                    });
+                }
             }
-            res.end(jsonString);
         });
-    }else{
+    } else {
         jsonString = messageFormatter.FormatMessage(undefined, "Update Organisation Failed", false, undefined);
     }
 }
 
-function GetAbandonCallRedialConfig(req, res){
+function GetAbandonCallRedialConfig(req, res) {
     logger.debug("DVP-UserService.GetAbandonCallRedialConfig Internal method ");
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
     var jsonString;
 
-    AbandonCall.findOne({tenant: tenant, company: company}, function (err, abandConfig) {
+    AbandonCall.findOne({ tenant: tenant, company: company }, function (err, abandConfig) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Get Abandon Call Redial Config Failed", false, undefined);
         } else {
@@ -646,34 +656,31 @@ function GetAbandonCallRedialConfig(req, res){
     });
 }
 
-function AddOrUpdateAbandonCallRedialConfig(req, res){
+function AddOrUpdateAbandonCallRedialConfig(req, res) {
     logger.debug("DVP-UserService.AddOrUpdateAbandonCallRedialConfig Internal method ");
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
     var jsonString;
 
-    AbandonCall.findOne({tenant: tenant, company: company}, function (err, abdConfig) {
+    AbandonCall.findOne({ tenant: tenant, company: company }, function (err, abdConfig) {
 
-        if(abdConfig)
-        {
-            AbandonCall.findOneAndUpdate({tenant: tenant, company: company}, {redialCampaignId: req.body.redialCampaignId, redialTime: req.body.redialTime, camScheduleId: req.body.camScheduleId, categoryId: req.body.categoryId, abandonThreshold: req.body.abandonThreshold, updated_at: Date.now()}, function (err, abandConfig) {
-                if(abandConfig)
-                {
+        if (abdConfig) {
+            AbandonCall.findOneAndUpdate({ tenant: tenant, company: company }, { redialCampaignId: req.body.redialCampaignId, redialTime: req.body.redialTime, camScheduleId: req.body.camScheduleId, categoryId: req.body.categoryId, abandonThreshold: req.body.abandonThreshold, updated_at: Date.now() }, function (err, abandConfig) {
+                if (abandConfig) {
                     jsonString = messageFormatter.FormatMessage(err, "Update Abandon Call Redial Config Successful", true, abandConfig);
                 }
-                else{
+                else {
                     jsonString = messageFormatter.FormatMessage(err, "Update Abandon Call Redial Config Failed", false, null);
                 }
                 res.end(jsonString);
             });
 
         }
-        else
-        {
+        else {
             var abandonObj = AbandonCall({
-                company:company,
-                tenant:tenant,
+                company: company,
+                tenant: tenant,
                 redialCampaignId: req.body.campaignId,
                 redialTime: req.body.redialTime,
                 created_at: Date.now(),
@@ -700,22 +707,22 @@ function AddOrUpdateAbandonCallRedialConfig(req, res){
 
 }
 
-function ActivateOrganisation(req, res){
+function ActivateOrganisation(req, res) {
     logger.debug("DVP-UserService.ActivateOrganisation Internal method ");
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
     var jsonString;
 
-    company = req.params.company? parseInt(req.params.company): company;
+    company = req.params.company ? parseInt(req.params.company) : company;
 
     var state = req.params.state;
 
     var updated_at = Date.now();
-    Org.findOneAndUpdate({tenant: tenant, id: company}, {companyEnabled : state, updated_at : updated_at}, function(err, org) {
+    Org.findOneAndUpdate({ tenant: tenant, id: company }, { companyEnabled: state, updated_at: updated_at }, function (err, org) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Activate Organisation Failed", false, undefined);
-        }else{
+        } else {
             jsonString = messageFormatter.FormatMessage(err, "Activate Organisation Successful", true, org);
         }
         res.end(jsonString);
@@ -723,28 +730,28 @@ function ActivateOrganisation(req, res){
 };
 
 
-var SetPackageToOrganisation = function(company, tenant, domainData, vPackage, org, userAccountId, addDefaultData, callback){
+var SetPackageToOrganisation = function (company, tenant, domainData, vPackage, org, userAccountId, addDefaultData, callback) {
     var jsonString;
 
-    if(vPackage.spaceLimit && vPackage.spaceLimit.length >0){
+    if (vPackage.spaceLimit && vPackage.spaceLimit.length > 0) {
         var spaceLimitsToAdd = [];
         vPackage.spaceLimit.forEach(function (sLimit) {
             var existingSpaceLimit = org.spaceLimit.filter(function (esl) {
-                return esl && sLimit &&  esl.spaceType === sLimit.spaceType;
+                return esl && sLimit && esl.spaceType === sLimit.spaceType;
             });
 
-            if(existingSpaceLimit && existingSpaceLimit.length > 0){
-                if(existingSpaceLimit[0].spaceLimit < sLimit.spaceLimit) {
+            if (existingSpaceLimit && existingSpaceLimit.length > 0) {
+                if (existingSpaceLimit[0].spaceLimit < sLimit.spaceLimit) {
                     existingSpaceLimit[0].spaceLimit = sLimit.spaceLimit;
-                    SetCompanySpaceLimit(tenant,company, sLimit.spaceType, existingSpaceLimit[0]);
+                    SetCompanySpaceLimit(tenant, company, sLimit.spaceType, existingSpaceLimit[0]);
                 }
-            }else{
+            } else {
                 spaceLimitsToAdd.push(sLimit);
-                SetCompanySpaceLimit(tenant,company, sLimit.spaceType, sLimit);
+                SetCompanySpaceLimit(tenant, company, sLimit.spaceType, sLimit);
             }
         });
 
-        if(spaceLimitsToAdd && spaceLimitsToAdd.length >0) {
+        if (spaceLimitsToAdd && spaceLimitsToAdd.length > 0) {
             org.spaceLimit = org.spaceLimit.concat(spaceLimitsToAdd);
         }
     }
@@ -763,7 +770,7 @@ var SetPackageToOrganisation = function(company, tenant, domainData, vPackage, o
                     count++;
                     var cal = org.consoleAccessLimits[j];
                     if (cal.accessType == vCal.accessType) {
-                        if(vPackage.navigationType.toLowerCase() === 'user'){ // if user package is bought increment access limit, no replacement
+                        if (vPackage.navigationType.toLowerCase() === 'user') { // if user package is bought increment access limit, no replacement
                             org.consoleAccessLimits[j].accessLimit += tempCal.accessLimit;
                         }
                         else {
@@ -839,13 +846,13 @@ var SetPackageToOrganisation = function(company, tenant, domainData, vPackage, o
                 }
 
                 if (eUserScope) {
-                    if(vPackage.navigationType.toLowerCase() === 'user' && vPackage.consoles.includes('AGENT_CONSOLE')){
-                        if(eUserScope.scopeName === 'ardsresource' || eUserScope.scopeName === 'sipuser'){ // increment ards and sip resource limits if a user agent package is bought
+                    if (vPackage.navigationType.toLowerCase() === 'user' && vPackage.consoles.includes('AGENT_CONSOLE')) {
+                        if (eUserScope.scopeName === 'ardsresource' || eUserScope.scopeName === 'sipuser') { // increment ards and sip resource limits if a user agent package is bought
                             eUserScope.accessLimit += 1;
                         }
-                      }
+                    }
                     else if (eUserScope.accessLimit != -1 && eUserScope.accessLimit < scopes.accessLimit) {
-                            eUserScope.accessLimit = scopes.accessLimit;
+                        eUserScope.accessLimit = scopes.accessLimit;
                     }
                 } else {
                     var rLimit = {
@@ -858,12 +865,12 @@ var SetPackageToOrganisation = function(company, tenant, domainData, vPackage, o
         }
 
 
-        Org.findOneAndUpdate({tenant: tenant, id: company}, org, function (err, rOrg) {
+        Org.findOneAndUpdate({ tenant: tenant, id: company }, org, function (err, rOrg) {
             if (err) {
                 jsonString = messageFormatter.FormatMessage(err, "Assign Package to Organisation Failed", false, undefined);
             } else {
                 // UpdateUser(org.ownerId, vPackage);
-                if(vPackage.navigationType.toLowerCase() !== 'user') {
+                if (vPackage.navigationType.toLowerCase() !== 'user') {
                     UpdateUser(userAccountId, vPackage);
                     AssignTaskToOrganisation(company, tenant, vPackage.veeryTask);
                     if (addDefaultData) {
@@ -883,30 +890,30 @@ var SetPackageToOrganisation = function(company, tenant, domainData, vPackage, o
     });
 };
 
-function AssignPackageToOrganisation(req,res){
+function AssignPackageToOrganisation(req, res) {
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
 
     var orgId;
 
-    if(req.params.company){
+    if (req.params.company) {
         orgId = parseInt(req.params.company);
-    }else{
+    } else {
         orgId = company;
     }
 
     var jsonString;
 
-    UserAccount.findOne({tenant: tenant, company: company, user: req.user.iss}).populate('userref' , '-password').exec(function (err, userAccount) {
+    UserAccount.findOne({ tenant: tenant, company: company, user: req.user.iss }).populate('userref', '-password').exec(function (err, userAccount) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Error in User Search", false, undefined);
             res.end(jsonString);
         } else {
-            if(userAccount) {
+            if (userAccount) {
                 AssignPackageToOrganisationLib(orgId, tenant, req.params.packageName, userAccount.userref, false, function (jsonString) {
                     res.end(jsonString);
                 });
-            }else{
+            } else {
                 jsonString = messageFormatter.FormatMessage(undefined, "No User Found.", false, undefined);
                 res.end(jsonString);
             }
@@ -916,11 +923,10 @@ function AssignPackageToOrganisation(req,res){
 
 }
 
-function AssignTaskToOrganisation(company, tenant, taskList){
-    var taskInfoUrl = util.format("http://%s/DVP/API/%s/ResourceManager/TaskInfo",config.Services.resourceServiceHost, config.Services.resourceServiceVersion);
-    var taskUrl = util.format("http://%s/DVP/API/%s/ResourceManager/Task",config.Services.resourceServiceHost, config.Services.resourceServiceVersion);
-    if(config.Services.dynamicPort || validator.isIP(config.Services.resourceServiceHost))
-    {
+function AssignTaskToOrganisation(company, tenant, taskList) {
+    var taskInfoUrl = util.format("http://%s/DVP/API/%s/ResourceManager/TaskInfo", config.Services.resourceServiceHost, config.Services.resourceServiceVersion);
+    var taskUrl = util.format("http://%s/DVP/API/%s/ResourceManager/Task", config.Services.resourceServiceHost, config.Services.resourceServiceVersion);
+    if (config.Services.dynamicPort || validator.isIP(config.Services.resourceServiceHost)) {
         taskUrl = util.format("http://%s:%s/DVP/API/%s/ResourceManager/Task", config.Services.resourceServiceHost, config.Services.resourceServicePort, config.Services.resourceServiceVersion);
         taskInfoUrl = util.format("http://%s:%s/DVP/API/%s/ResourceManager/TaskInfo", config.Services.resourceServiceHost, config.Services.resourceServicePort, config.Services.resourceServiceVersion);
     }
@@ -931,13 +937,13 @@ function AssignTaskToOrganisation(company, tenant, taskList){
         }
         else {
             var jResult = JSON.parse(result);
-            for(var i in taskList) {
-                var task = FilterObjFromArray(jResult.Result,"TaskType",taskList[i]);
-                if(task) {
-                    var body = {"TaskInfoId": task.TaskInfoId};
-                    if(task.TaskType == "CALL" || task.TaskType == "CHAT"){
+            for (var i in taskList) {
+                var task = FilterObjFromArray(jResult.Result, "TaskType", taskList[i]);
+                if (task) {
+                    var body = { "TaskInfoId": task.TaskInfoId };
+                    if (task.TaskType == "CALL" || task.TaskType == "CHAT") {
                         body.AddToProductivity = true;
-                    }else{
+                    } else {
                         body.AddToProductivity = false;
                     }
                     restClientHandler.DoPost(companyInfo, taskUrl, body, function (err, res1, result) {
@@ -954,25 +960,23 @@ function AssignTaskToOrganisation(company, tenant, taskList){
     });
 }
 
-function AssignContextAndCloudEndUserToOrganisation(company, tenant, domain){
-    var contextUrl = util.format("http://%s/DVP/API/%s/SipUser/Context",config.Services.sipuserendpointserviceHost, config.Services.sipuserendpointserviceVersion);
-    var transferCodesUrl = util.format("http://%s/DVP/API/%s/SipUser/TransferCode",config.Services.sipuserendpointserviceHost, config.Services.sipuserendpointserviceVersion);
-    var cloudEndUserUrl = util.format("http://%s/DVP/API/%s/CloudConfiguration/DefaultCloudEndUser",config.Services.clusterconfigserviceHost, config.Services.clusterconfigserviceVersion);
-    if(config.Services.dynamicPort || validator.isIP(config.Services.sipuserendpointserviceHost))
-    {
+function AssignContextAndCloudEndUserToOrganisation(company, tenant, domain) {
+    var contextUrl = util.format("http://%s/DVP/API/%s/SipUser/Context", config.Services.sipuserendpointserviceHost, config.Services.sipuserendpointserviceVersion);
+    var transferCodesUrl = util.format("http://%s/DVP/API/%s/SipUser/TransferCode", config.Services.sipuserendpointserviceHost, config.Services.sipuserendpointserviceVersion);
+    var cloudEndUserUrl = util.format("http://%s/DVP/API/%s/CloudConfiguration/DefaultCloudEndUser", config.Services.clusterconfigserviceHost, config.Services.clusterconfigserviceVersion);
+    if (config.Services.dynamicPort || validator.isIP(config.Services.sipuserendpointserviceHost)) {
         contextUrl = util.format("http://%s:%s/DVP/API/%s/SipUser/Context", config.Services.sipuserendpointserviceHost, config.Services.sipuserendpointservicePort, config.Services.sipuserendpointserviceVersion);
-        transferCodesUrl = util.format("http://%s:%s/DVP/API/%s/SipUser/TransferCode",config.Services.sipuserendpointserviceHost, config.Services.sipuserendpointservicePort, config.Services.sipuserendpointserviceVersion);
+        transferCodesUrl = util.format("http://%s:%s/DVP/API/%s/SipUser/TransferCode", config.Services.sipuserendpointserviceHost, config.Services.sipuserendpointservicePort, config.Services.sipuserendpointserviceVersion);
     }
 
-    if(config.Services.dynamicPort || validator.isIP(config.Services.clusterconfigserviceHost))
-    {
+    if (config.Services.dynamicPort || validator.isIP(config.Services.clusterconfigserviceHost)) {
         cloudEndUserUrl = util.format("http://%s:%s/DVP/API/%s/CloudConfiguration/DefaultCloudEndUser", config.Services.clusterconfigserviceHost, config.Services.clusterconfigservicePort, config.Services.clusterconfigserviceVersion);
     }
 
     var companyInfo = util.format("%d:%d", tenant, company);
     var contextReqBody = {
         ContextCat: 'INTERNAL',
-        Context: util.format("%d_%d_CONTEXT",tenant, company),
+        Context: util.format("%d_%d_CONTEXT", tenant, company),
         Description: 'Default Internal Context',
         ClientTenant: tenant,
         ClientCompany: company
@@ -987,10 +991,8 @@ function AssignContextAndCloudEndUserToOrganisation(company, tenant, domain){
 
             var companyInfoForCloudEndUser = util.format("%d:%d", 1, 1);
 
-            if(config.ClusterName)
-            {
-                if(config.Provision)
-                {
+            if (config.ClusterName) {
+                if (config.Provision) {
                     provision = config.Provision;
                 }
 
@@ -1027,8 +1029,7 @@ function AssignContextAndCloudEndUserToOrganisation(company, tenant, domain){
                     }
                 });
             }
-            else
-            {
+            else {
                 console.log("Cluster Code not set");
             }
 
@@ -1037,68 +1038,63 @@ function AssignContextAndCloudEndUserToOrganisation(company, tenant, domain){
     });
 }
 
-function AddDefaultRule(company, tenant){
-    var ruleserviceUrl = util.format("http://%s/DVP/API/%s/CallRuleApi/DefaultRule",config.Services.ruleserviceHost, config.Services.ruleserviceVersion);
+function AddDefaultRule(company, tenant) {
+    var ruleserviceUrl = util.format("http://%s/DVP/API/%s/CallRuleApi/DefaultRule", config.Services.ruleserviceHost, config.Services.ruleserviceVersion);
 
-    if(config.Services.dynamicPort || validator.isIP(config.Services.ruleserviceHost))
-    {
-        ruleserviceUrl = util.format("http://%s:%s/DVP/API/%s/CallRuleApi/DefaultRule",config.Services.ruleserviceHost, config.Services.ruleservicePort, config.Services.ruleserviceVersion);
+    if (config.Services.dynamicPort || validator.isIP(config.Services.ruleserviceHost)) {
+        ruleserviceUrl = util.format("http://%s:%s/DVP/API/%s/CallRuleApi/DefaultRule", config.Services.ruleserviceHost, config.Services.ruleservicePort, config.Services.ruleserviceVersion);
     }
     var compInfo = util.format("%d:%d", tenant, company);
     restClientHandler.DoPost(compInfo, ruleserviceUrl, null, function (err, res1, result) {
-        if (err)
-        {
+        if (err) {
             console.log(err);
         }
-        else
-        {
+        else {
             console.log("Add default rule result : ", result);
         }
     });
 }
 
-function AddDefaultFileCategories(company, tenant){
+function AddDefaultFileCategories(company, tenant) {
 
-    var arr ={FileCategories: [
-            {Category: 'CONVERSATION', Owner: "user", Visible: true, Encripted: true},
-            {Category: 'VOICEMAIL', Owner: "user", Visible: true, Encripted: false},
-            {Category: 'HOLDMUSIC', Owner: "user", Visible: true, Encripted: false},
-            {Category: 'IVRCLIPS', Owner: "user", Visible: true, Encripted: false},
-            {Category: 'TICKET_ATTACHMENTS', Owner: "user", Visible: true, Encripted: false},
-            {Category: 'REPORTS', Owner: "user", Visible: true, Encripted: false},
-            {Category: 'PROFILE_PICTURES', Owner: "user", Visible: true, Encripted: false},
-            {Category: 'NOTICE_ATTACHMENTS', Owner: "user", Visible: true, Encripted: false},
-            {Category: 'CHAT_ATTACHMENTS', Owner: "user", Visible: true, Encripted: false},
-            {Category: 'FAX', Owner: "user", Visible: true, Encripted: false},
-            {Category: 'EMAIL_ATTACHMENTS', Owner: "user", Visible: true, Encripted: false},
-            {Category: 'AGENT_GREETINGS', Owner: "user", Visible: true, Encripted: false}
-        ]};
+    var arr = {
+        FileCategories: [
+            { Category: 'CONVERSATION', Owner: "user", Visible: true, Encripted: true },
+            { Category: 'VOICEMAIL', Owner: "user", Visible: true, Encripted: false },
+            { Category: 'HOLDMUSIC', Owner: "user", Visible: true, Encripted: false },
+            { Category: 'IVRCLIPS', Owner: "user", Visible: true, Encripted: false },
+            { Category: 'TICKET_ATTACHMENTS', Owner: "user", Visible: true, Encripted: false },
+            { Category: 'REPORTS', Owner: "user", Visible: true, Encripted: false },
+            { Category: 'PROFILE_PICTURES', Owner: "user", Visible: true, Encripted: false },
+            { Category: 'NOTICE_ATTACHMENTS', Owner: "user", Visible: true, Encripted: false },
+            { Category: 'CHAT_ATTACHMENTS', Owner: "user", Visible: true, Encripted: false },
+            { Category: 'FAX', Owner: "user", Visible: true, Encripted: false },
+            { Category: 'EMAIL_ATTACHMENTS', Owner: "user", Visible: true, Encripted: false },
+            { Category: 'AGENT_GREETINGS', Owner: "user", Visible: true, Encripted: false }
+        ]
+    };
 
-    var fileserviceUrl = util.format("http://%s/DVP/API/%s/FileService/FileCategory/Bulk",config.Services.fileserviceHost, config.Services.fileserviceVersion);
+    var fileserviceUrl = util.format("http://%s/DVP/API/%s/FileService/FileCategory/Bulk", config.Services.fileserviceHost, config.Services.fileserviceVersion);
 
-    if(config.Services.dynamicPort || validator.isIP(config.Services.fileserviceHost))
-    {
-        fileserviceUrl = util.format("http://%s:%s/DVP/API/%s/FileService/FileCategory/Bulk",config.Services.fileserviceHost, config.Services.fileservicePort, config.Services.fileserviceVersion);
+    if (config.Services.dynamicPort || validator.isIP(config.Services.fileserviceHost)) {
+        fileserviceUrl = util.format("http://%s:%s/DVP/API/%s/FileService/FileCategory/Bulk", config.Services.fileserviceHost, config.Services.fileservicePort, config.Services.fileserviceVersion);
     }
     var compInfo = util.format("%d:%d", tenant, company);
     restClientHandler.DoPost(compInfo, fileserviceUrl, arr, function (err, res1, result) {
-        if (err)
-        {
+        if (err) {
             console.log(err);
         }
-        else
-        {
+        else {
             console.log("Add file categories result : ", result);
         }
     });
 }
 
-function AddDefaultTicketTypes(company, tenant){
-    var ticketserviceUrl = util.format("http://%s/DVP/API/%s/TicketTypes",config.Services.liteticketHost, config.Services.liteticketVersion);
+function AddDefaultTicketTypes(company, tenant) {
+    var ticketserviceUrl = util.format("http://%s/DVP/API/%s/TicketTypes", config.Services.liteticketHost, config.Services.liteticketVersion);
 
-    if(config.Services.dynamicPort || validator.isIP(config.Services.liteticketHost))
-    {
-        ticketserviceUrl = util.format("http://%s:%s/DVP/API/%s/TicketTypes",config.Services.liteticketHost, config.Services.liteticketPort, config.Services.liteticketVersion);
+    if (config.Services.dynamicPort || validator.isIP(config.Services.liteticketHost)) {
+        ticketserviceUrl = util.format("http://%s:%s/DVP/API/%s/TicketTypes", config.Services.liteticketHost, config.Services.liteticketPort, config.Services.liteticketVersion);
     }
     var compInfo = util.format("%d:%d", tenant, company);
 
@@ -1106,58 +1102,56 @@ function AddDefaultTicketTypes(company, tenant){
         custom_types: []
     };
     restClientHandler.DoPost(compInfo, ticketserviceUrl, obj, function (err, res1, result) {
-        if (err)
-        {
+        if (err) {
             console.log(err);
         }
-        else
-        {
+        else {
             console.log("Add default ticket types : ", result);
         }
     });
 }
 
-function RemovePackageFromOrganisation(req,res){
+function RemovePackageFromOrganisation(req, res) {
     logger.debug("DVP-UserService.RemovePackageFromOrganisation Internal method ");
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
     var jsonString;
 
-    Org.findOne({tenant: tenant, id: company}, function(err, org) {
+    Org.findOne({ tenant: tenant, id: company }, function (err, org) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Find Organisation Failed", false, undefined);
             res.end(jsonString);
-        }else{
-            if(org) {
+        } else {
+            if (org) {
                 org.updated_at = Date.now();
                 for (var i = 0; i < org.packages.length; i++) {
                     if (org.packages[i].search(req.params.packageName) != -1) {
                         org.packages.splice(i, 1);
                     }
                 }
-                VPackage.findOne({packageName: req.params.packageName}, function(err, vPackage) {
+                VPackage.findOne({ packageName: req.params.packageName }, function (err, vPackage) {
                     if (err) {
                         jsonString = messageFormatter.FormatMessage(err, "Get Package Failed", false, undefined);
                         console.log(jsonString);
                     } else {
-                        if(vPackage.spaceLimit && vPackage.spaceLimit.length >0){
+                        if (vPackage.spaceLimit && vPackage.spaceLimit.length > 0) {
                             vPackage.spaceLimit.forEach(function (sLimit) {
                                 var existingSpaceLimit = org.spaceLimit.filter(function (esl) {
                                     return esl.spaceType === sLimit.spaceType;
                                 });
 
-                                if(existingSpaceLimit && existingSpaceLimit.length > 0){
+                                if (existingSpaceLimit && existingSpaceLimit.length > 0) {
                                     existingSpaceLimit[0].spaceLimit = existingSpaceLimit[0].spaceLimit - sLimit.spaceLimit;
-                                    SetCompanySpaceLimit(tenant,company, sLimit.spaceType, existingSpaceLimit[0]);
+                                    SetCompanySpaceLimit(tenant, company, sLimit.spaceType, existingSpaceLimit[0]);
                                 }
                             });
                         }
 
 
-                        for(var i in vPackage.consoleAccessLimit){
+                        for (var i in vPackage.consoleAccessLimit) {
                             var vCal = vPackage.consoleAccessLimit[i];
-                            var tempCal = {accessType: vCal.accessType, accessLimit: vCal.accessLimit, currentAccess: []};
+                            var tempCal = { accessType: vCal.accessType, accessLimit: vCal.accessLimit, currentAccess: [] };
                             for (var j in org.consoleAccessLimits) {
                                 var cal = org.consoleAccessLimits[j];
                                 if (cal.accessType == vCal.accessType) {
@@ -1179,7 +1173,7 @@ function RemovePackageFromOrganisation(req,res){
                             }
                         }
 
-                        Org.findOneAndUpdate({tenant: tenant, id: company}, org, function (err, rorg) {
+                        Org.findOneAndUpdate({ tenant: tenant, id: company }, org, function (err, rorg) {
                             if (err) {
                                 jsonString = messageFormatter.FormatMessage(err, "Remove Package to Organisation Failed", false, undefined);
                             } else {
@@ -1190,7 +1184,7 @@ function RemovePackageFromOrganisation(req,res){
                         });
                     }
                 });
-            }else{
+            } else {
                 jsonString = messageFormatter.FormatMessage(err, "Find Organisation Failed", false, undefined);
                 res.end(jsonString);
             }
@@ -1198,19 +1192,19 @@ function RemovePackageFromOrganisation(req,res){
     });
 }
 
-function GetUserScopes(scopes){
+function GetUserScopes(scopes) {
     var e = new EventEmitter();
     process.nextTick(function () {
         if (scopes && Array.isArray(scopes)) {
             var count = 0;
-            for (var i =0; i < scopes.length; i++) {
+            for (var i = 0; i < scopes.length; i++) {
                 count++;
                 var userScope = {};
                 var oScope = scopes[i];
-                if(oScope) {
+                if (oScope) {
                     userScope.scope = oScope.scopeName;
                     userScope.accessLimit = oScope.limit;
-                    if(oScope.actions) {
+                    if (oScope.actions) {
                         for (var j = 0; j < oScope.actions.length; j++) {
                             var action = oScope.actions[j];
                             if (action) {
@@ -1228,15 +1222,15 @@ function GetUserScopes(scopes){
                             }
                         }
                     }
-                    if(userScope) {
+                    if (userScope) {
                         e.emit('getUserScopes', userScope);
                     }
                 }
-                if(count == scopes.length){
+                if (count == scopes.length) {
                     e.emit('endGetUserScopes');
                 }
             }
-        }else {
+        } else {
             e.emit('endGetUserScopes');
         }
     });
@@ -1244,28 +1238,28 @@ function GetUserScopes(scopes){
     return (e);
 }
 
-function ExtractResources(resources){
+function ExtractResources(resources) {
     var e = new EventEmitter();
     process.nextTick(function () {
         if (resources && Array.isArray(resources) && resources.length > 0) {
             var count = 0;
             var userScopes = [];
-            for (var i = 0; i< resources.length; i++) {
+            for (var i = 0; i < resources.length; i++) {
                 var resource = resources[i];
-                var gus  = GetUserScopes(resource.scopes);
-                gus.on('getUserScopes', function(scope){
-                    if(scope){
+                var gus = GetUserScopes(resource.scopes);
+                gus.on('getUserScopes', function (scope) {
+                    if (scope) {
                         userScopes.push(scope);
                     }
                 });
-                gus.on('endGetUserScopes', function(){
+                gus.on('endGetUserScopes', function () {
                     count++;
-                    if(count == resources.length){
+                    if (count == resources.length) {
                         e.emit('endExtractResources', userScopes);
                     }
                 });
             }
-        }else {
+        } else {
             e.emit('endExtractResources', []);
         }
     });
@@ -1273,29 +1267,29 @@ function ExtractResources(resources){
     return (e);
 }
 
-function ExtractConsoles(consoles, navigationType){
+function ExtractConsoles(consoles, navigationType) {
     var e = new EventEmitter();
     process.nextTick(function () {
         if (consoles && Array.isArray(consoles)) {
-            logger.debug("consoles Length: "+ consoles.length);
+            logger.debug("consoles Length: " + consoles.length);
             var count = 0;
             var consoleScopes = [];
-            for (var i = 0; i< consoles.length;i++) {
+            for (var i = 0; i < consoles.length; i++) {
                 var consoleName = consoles[i];
-                logger.debug("consoleName: "+ consoleName);
-                Console.findOne({consoleName: consoleName}, function(err, rConsole) {
+                logger.debug("consoleName: " + consoleName);
+                Console.findOne({ consoleName: consoleName }, function (err, rConsole) {
                     if (err) {
                         jsonString = messageFormatter.FormatMessage(err, "Get Console Failed", false, undefined);
                         console.log(jsonString);
-                    }else{
-                        if(rConsole) {
+                    } else {
+                        if (rConsole) {
                             logger.debug("Result consoleName: " + rConsole.consoleName);
-                            var consoleScope = {consoleName: rConsole.consoleName, menus: []};
-                            if(rConsole.consoleNavigation) {
+                            var consoleScope = { consoleName: rConsole.consoleName, menus: [] };
+                            if (rConsole.consoleNavigation) {
                                 for (var j = 0; j < rConsole.consoleNavigation.length; j++) {
                                     var navigation = rConsole.consoleNavigation[j];
-                                    if (navigation && navigation.navigationName && navigation.resources && navigation.navigationTypes.indexOf(navigationType)>-1) {
-                                        var menuScope = {menuItem: navigation.navigationName, menuAction: []};
+                                    if (navigation && navigation.navigationName && navigation.resources && navigation.navigationTypes.indexOf(navigationType) > -1) {
+                                        var menuScope = { menuItem: navigation.navigationName, menuAction: [] };
                                         for (var k = 0; k < navigation.resources.length; k++) {
                                             var navigationResource = navigation.resources[k];
                                             if (navigationResource && navigationResource.scopes) {
@@ -1306,7 +1300,7 @@ function ExtractConsoles(consoles, navigationType){
                                                             scope: navigationResourceScope.scopeName,
                                                             feature: navigationResourceScope.feature
                                                         };
-                                                        if(navigationResourceScope.actions) {
+                                                        if (navigationResourceScope.actions) {
                                                             for (var m = 0; m < navigationResourceScope.actions.length; m++) {
                                                                 var action = navigationResourceScope.actions[m];
                                                                 if (action) {
@@ -1340,45 +1334,45 @@ function ExtractConsoles(consoles, navigationType){
                         }
                     }
 
-                    if(count == consoles.length){
-                        e.emit('endExtractConsoles',consoleScopes);
+                    if (count == consoles.length) {
+                        e.emit('endExtractConsoles', consoleScopes);
                     }
                 });
             }
-        }else {
-            e.emit('endExtractConsoles',[]);
+        } else {
+            e.emit('endExtractConsoles', []);
         }
     });
 
     return (e);
 }
 
-function UpdateUser(userAccountId, vPackage){
+function UpdateUser(userAccountId, vPackage) {
     var jsonString;
-    UserAccount.findOne({_id: userAccountId}, function(err, userAccount) {
+    UserAccount.findOne({ _id: userAccountId }, function (err, userAccount) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Find User Account Failed", false, undefined);
             return jsonString;
         } else {
             var fixUserScopes = [
-                {scope: "user", read: true, write: true, delete: true},
-                {scope: "userProfile", read: true, write: true, delete: true},
-                {scope: "organisation", read: true, write: true},
-                {scope: "resource", read: true},
-                {scope: "package", read: true},
-                {scope: "console", read: true},
-                {scope: "userScope", read: true, write: true, delete: true},
-                {scope: "userAppScope", read: true, write: true, delete: true},
-                {scope: "userMeta", read: true, write: true, delete: true},
-                {scope: "userAppMeta", read: true, write: true, delete: true},
-                {scope: "client", read: true, write: true, delete: true},
-                {scope: "clientScope", read: true, write: true, delete: true}
+                { scope: "user", read: true, write: true, delete: true },
+                { scope: "userProfile", read: true, write: true, delete: true },
+                { scope: "organisation", read: true, write: true },
+                { scope: "resource", read: true },
+                { scope: "package", read: true },
+                { scope: "console", read: true },
+                { scope: "userScope", read: true, write: true, delete: true },
+                { scope: "userAppScope", read: true, write: true, delete: true },
+                { scope: "userMeta", read: true, write: true, delete: true },
+                { scope: "userAppMeta", read: true, write: true, delete: true },
+                { scope: "client", read: true, write: true, delete: true },
+                { scope: "clientScope", read: true, write: true, delete: true }
             ];
             var er = ExtractResources(vPackage.resources);
-            er.on('endExtractResources', function(userScopes){
+            er.on('endExtractResources', function (userScopes) {
                 userScopes = userScopes.concat(fixUserScopes);
-                var uScopes = UniqueObjectArray(userScopes,"scope");
-                if(uScopes) {
+                var uScopes = UniqueObjectArray(userScopes, "scope");
+                if (uScopes) {
                     for (var i = 0; i < uScopes.length; i++) {
                         var eUserScope = FilterObjFromArray(userAccount.user_scopes, "scope", uScopes[i].scope);
                         if (eUserScope) {
@@ -1397,37 +1391,37 @@ function UpdateUser(userAccountId, vPackage){
                     }
                 }
                 var ec = ExtractConsoles(vPackage.consoles, vPackage.navigationType);
-                ec.on('endExtractConsoles', function(clientScopes){
-                    if(clientScopes) {
+                ec.on('endExtractConsoles', function (clientScopes) {
+                    if (clientScopes) {
                         for (var j = 0; j < clientScopes.length; j++) {
-                            if(userAccount.client_scopes && userAccount.client_scopes.length > 0) {
+                            if (userAccount.client_scopes && userAccount.client_scopes.length > 0) {
                                 var existingClientScope = FilterObjFromArray(userAccount.client_scopes, "consoleName", clientScopes[j].consoleName);
 
-                                if(existingClientScope){
+                                if (existingClientScope) {
                                     clientScopes[j].menus.forEach(function (cScopeMenu) {
-                                        if(cScopeMenu){
+                                        if (cScopeMenu) {
 
                                             existingClientScope.menus.push(cScopeMenu);
                                         }
                                     });
-                                }else{
+                                } else {
                                     userAccount.client_scopes.push(clientScopes[j]);
                                 }
-                            }else {
+                            } else {
                                 userAccount.client_scopes.push(clientScopes[j]);
                             }
                         }
                     }
 
-                    userAccount.client_scopes = UniqueObjectArray(userAccount.client_scopes,"consoleName");
-                    if(userAccount.client_scopes) {
+                    userAccount.client_scopes = UniqueObjectArray(userAccount.client_scopes, "consoleName");
+                    if (userAccount.client_scopes) {
                         for (var k = 0; k < userAccount.client_scopes.length; k++) {
                             var ucs = userAccount.client_scopes[k];
                             ucs.menus = UniqueObjectArray(ucs.menus, "menuItem");
-                            if(ucs.menus) {
+                            if (ucs.menus) {
                                 for (var l = 0; l < ucs.menus.length; l++) {
                                     var menu1 = ucs.menus[l];
-                                    if(menu1) {
+                                    if (menu1) {
                                         for (var m = 0; m < menu1.menuAction.length; m++) {
                                             var menuAction = FilterObjFromArray(userAccount.user_scopes, "scope", menu1.menuAction[m].scope);
                                             if (menuAction) {
@@ -1441,7 +1435,7 @@ function UpdateUser(userAccountId, vPackage){
                                                     menuAction.delete = menu1.menuAction[m].delete;
                                                 }
                                             } else {
-                                                var mAction = {scope: menu1.menuAction[m].scope};
+                                                var mAction = { scope: menu1.menuAction[m].scope };
                                                 if (menu1.menuAction[m].read) {
                                                     mAction.read = menu1.menuAction[m].read;
                                                 }
@@ -1459,8 +1453,8 @@ function UpdateUser(userAccountId, vPackage){
                             }
                         }
                     }
-                    userAccount.user_scopes = UniqueObjectArray(userAccount.user_scopes,"scope");
-                    UserAccount.findOneAndUpdate({_id: userAccountId}, userAccount, function (err, rUser) {
+                    userAccount.user_scopes = UniqueObjectArray(userAccount.user_scopes, "scope");
+                    UserAccount.findOneAndUpdate({ _id: userAccountId }, userAccount, function (err, rUser) {
                         if (err) {
                             jsonString = messageFormatter.FormatMessage(err, "Update User Scopes Failed", false, undefined);
                         } else {
@@ -1482,8 +1476,8 @@ function CreateOrganisationStanAlone(user, companyname, timezone, callback) {
 
 
             if (user.company === 0) {
-                logger.info("DVP-UserService.CreateOrganisationStanAlone Active Tenant: "+ config.Tenant.activeTenant);
-                Tenant.findOne({id: config.Tenant.activeTenant}, function (err, Tenants) {
+                logger.info("DVP-UserService.CreateOrganisationStanAlone Active Tenant: " + config.Tenant.activeTenant);
+                Tenant.findOne({ id: config.Tenant.activeTenant }, function (err, Tenants) {
                     if (err) {
 
                         callback(err, undefined);
@@ -1492,9 +1486,9 @@ function CreateOrganisationStanAlone(user, companyname, timezone, callback) {
 
                         if (Tenants) {
 
-                            var company =user.username;
+                            var company = user.username;
 
-                            if(companyname)
+                            if (companyname)
                                 company = companyname;
 
                             var org = Org({
@@ -1525,16 +1519,16 @@ function CreateOrganisationStanAlone(user, companyname, timezone, callback) {
                                         userref: user._id,
                                         tenant: org.tenant,
                                         company: org.id,
-                                        user_meta: {role: "admin"},
+                                        user_meta: { role: "admin" },
                                         app_meta: {},
                                         user_scopes: [
-                                            {scope: "organisation", read: true, write: true},
-                                            {scope: "resource", read: true},
-                                            {scope: "package", read: true},
-                                            {scope: "console", read: true},
-                                            {scope: "myNavigation", read: true},
-                                            {scope: "myUserProfile", read: true},
-                                            {scope: "wallet", read: true,write: true}
+                                            { scope: "organisation", read: true, write: true },
+                                            { scope: "resource", read: true },
+                                            { scope: "package", read: true },
+                                            { scope: "console", read: true },
+                                            { scope: "myNavigation", read: true },
+                                            { scope: "myUserProfile", read: true },
+                                            { scope: "wallet", read: true, write: true }
 
                                         ],
                                         created_at: Date.now(),
@@ -1549,7 +1543,7 @@ function CreateOrganisationStanAlone(user, companyname, timezone, callback) {
                                             callback(err, undefined);
                                         } else {
                                             //rUser.company = cid;
-                                            if(account && org) {
+                                            if (account && org) {
                                                 user._doc.tenant = org.tenant;
                                                 user._doc.company = org.id;
                                                 user._doc.companyName = org.companyName;
@@ -1563,9 +1557,15 @@ function CreateOrganisationStanAlone(user, companyname, timezone, callback) {
                                                 user._doc.multi_login = account.multi_login;
                                             }
 
-                                            AssignPackageToOrganisationLib(cid, Tenants.id, "BASIC", user, true, function(jsonString){
+                                            AssignPackageToOrganisationLib(cid, Tenants.id, "BASIC", user, true, function (jsonString) {
                                                 console.log(jsonString);
-                                                callback(undefined, user);
+                                                CreateDashboardServiceSchdule(company, tenant, timezone, false, function (err) {
+                                                    if (err) {
+                                                        callback(new Error("Update rganisation Failed: Dashboard Service Update Issue"), undefined);
+                                                    }
+
+                                                    callback(undefined, user);
+                                                });
                                             });
                                         }
                                     });
@@ -1588,38 +1588,38 @@ function CreateOrganisationStanAlone(user, companyname, timezone, callback) {
     });
 }
 
-function AssignPackageUnitToOrganisation(req,res){
+function AssignPackageUnitToOrganisation(req, res) {
 
     logger.debug("DVP-UserService.AssignPackageUnitToOrganisation Internal method ");
-    logger.debug("Package:: "+req.params.packageName);
-    logger.debug("PackageUnit:: "+req.params.unitName);
+    logger.debug("Package:: " + req.params.packageName);
+    logger.debug("PackageUnit:: " + req.params.unitName);
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
 
     var orgId;
 
-    if(req.params.company){
+    if (req.params.company) {
         orgId = parseInt(req.params.company);
-    }else{
+    } else {
         orgId = company;
     }
 
 
     var topUpCount = 0;
-    if(req.params.topUpCount) {
+    if (req.params.topUpCount) {
         topUpCount = parseInt(req.params.topUpCount);
     }
     var jsonString;
 
-    if(topUpCount > 0) {
-        UserAccount.findOne({tenant: tenant, company: company, user: req.user.iss}).populate('userref' , '-password').exec(function (err, userAccount) {
+    if (topUpCount > 0) {
+        UserAccount.findOne({ tenant: tenant, company: company, user: req.user.iss }).populate('userref', '-password').exec(function (err, userAccount) {
             if (err) {
                 jsonString = messageFormatter.FormatMessage(err, "Error in User Search", false, undefined);
                 res.end(jsonString);
             } else {
-                if(userAccount) {
-                    VPackage.findOne({packageName: req.params.packageName}, function (err, vPackage) {
+                if (userAccount) {
+                    VPackage.findOne({ packageName: req.params.packageName }, function (err, vPackage) {
 
                         if (err) {
 
@@ -1627,8 +1627,8 @@ function AssignPackageUnitToOrganisation(req,res){
                             res.end(jsonString);
 
                         } else {
-                            if(vPackage) {
-                                Org.findOne({tenant: tenant, id: orgId}).populate('ownerRef' , '-password').exec( function (err, org) {
+                            if (vPackage) {
+                                Org.findOne({ tenant: tenant, id: orgId }).populate('ownerRef', '-password').exec(function (err, org) {
 
                                     if (err) {
 
@@ -1641,7 +1641,7 @@ function AssignPackageUnitToOrganisation(req,res){
 
                                             if (org.packages.indexOf(req.params.packageName) > -1) {
 
-                                                PackageUnit.findOne({unitName: req.params.unitName}, function (err, packageUnit) {
+                                                PackageUnit.findOne({ unitName: req.params.unitName }, function (err, packageUnit) {
 
                                                     if (err) {
 
@@ -1651,7 +1651,7 @@ function AssignPackageUnitToOrganisation(req,res){
                                                     } else {
 
                                                         if (packageUnit) {
-                                                            if(packageUnit.unitType.toLowerCase() === 'spacelimit'){
+                                                            if (packageUnit.unitType.toLowerCase() === 'spacelimit') {
                                                                 topUpCount = 1;
                                                             }
                                                             var billingObj = {
@@ -1669,60 +1669,60 @@ function AssignPackageUnitToOrganisation(req,res){
                                                                 isTrial: false
                                                             };
 
-                                                            RequestToBill(org.id, org.tenant, billingObj, function(err, response){
-                                                                if(err){
+                                                            RequestToBill(org.id, org.tenant, billingObj, function (err, response) {
+                                                                if (err) {
                                                                     jsonString = messageFormatter.FormatMessage(err, "Error in Billing request", false, undefined);
                                                                     res.end(jsonString);
-                                                                }else{
-                                                                    if(response) {
-                                                                        if(response.IsSuccess) {
+                                                                } else {
+                                                                    if (response) {
+                                                                        if (response.IsSuccess) {
                                                                             org.updated_at = Date.now();
 
-                                                                            if(packageUnit.unitType.toLowerCase() === 'spacelimit'){
+                                                                            if (packageUnit.unitType.toLowerCase() === 'spacelimit') {
 
-                                                                                if(packageUnit.unitData && packageUnit.unitData.spaceLimit && packageUnit.unitData.spaceLimit.length >0){
+                                                                                if (packageUnit.unitData && packageUnit.unitData.spaceLimit && packageUnit.unitData.spaceLimit.length > 0) {
                                                                                     var spaceLimitsToAdd = [];
                                                                                     packageUnit.unitData.spaceLimit.forEach(function (sLimit) {
                                                                                         var existingSpaceLimit = org.spaceLimit.filter(function (esl) {
                                                                                             return esl.spaceType === sLimit.spaceType;
                                                                                         });
 
-                                                                                        if(existingSpaceLimit && existingSpaceLimit.length > 0){
+                                                                                        if (existingSpaceLimit && existingSpaceLimit.length > 0) {
                                                                                             existingSpaceLimit[0].spaceLimit = existingSpaceLimit[0].spaceLimit + sLimit.spaceLimit;
                                                                                             SetCompanySpaceLimit(org.tenant, org.id, sLimit.spaceType, existingSpaceLimit[0]);
-                                                                                        }else{
+                                                                                        } else {
                                                                                             spaceLimitsToAdd.push(sLimit);
                                                                                             SetCompanySpaceLimit(org.tenant, org.id, sLimit.spaceType, sLimit);
                                                                                         }
                                                                                     });
 
-                                                                                    if(spaceLimitsToAdd && spaceLimitsToAdd.length >0) {
+                                                                                    if (spaceLimitsToAdd && spaceLimitsToAdd.length > 0) {
                                                                                         org.spaceLimit = org.spaceLimit.concat(spaceLimitsToAdd);
                                                                                     }
                                                                                 }
 
-                                                                            }else if(packageUnit.unitType.toLowerCase() === 'codec'){
+                                                                            } else if (packageUnit.unitType.toLowerCase() === 'codec') {
 
-                                                                                if(packageUnit.unitData && packageUnit.unitData.codecLimit && packageUnit.unitData.codecLimit.length >0){
+                                                                                if (packageUnit.unitData && packageUnit.unitData.codecLimit && packageUnit.unitData.codecLimit.length > 0) {
                                                                                     var codecLimitsToAdd = [];
                                                                                     packageUnit.unitData.codecLimit.forEach(function (cLimit) {
                                                                                         var existingCodecLimit = org.codecAccessLimits.filter(function (esl) {
                                                                                             return esl.codec === cLimit.codec;
                                                                                         });
 
-                                                                                        if(existingCodecLimit && existingCodecLimit.length > 0){
+                                                                                        if (existingCodecLimit && existingCodecLimit.length > 0) {
                                                                                             existingCodecLimit[0].codecLimit = existingCodecLimit[0].codecLimit + topUpCount;
-                                                                                        }else{
-                                                                                            codecLimitsToAdd.push({codec: cLimit.codec, codecLimit: topUpCount, currentAccess: 0});
+                                                                                        } else {
+                                                                                            codecLimitsToAdd.push({ codec: cLimit.codec, codecLimit: topUpCount, currentAccess: 0 });
                                                                                         }
                                                                                     });
 
-                                                                                    if(codecLimitsToAdd && codecLimitsToAdd.length >0) {
+                                                                                    if (codecLimitsToAdd && codecLimitsToAdd.length > 0) {
                                                                                         org.codecAccessLimits = org.codecAccessLimits.concat(codecLimitsToAdd);
                                                                                     }
                                                                                 }
 
-                                                                            }else {
+                                                                            } else {
                                                                                 if (packageUnit.unitData && packageUnit.unitData.consoleAccessLimit && org.consoleAccessLimits.length > 0) {
 
                                                                                     for (var j = 0; j < org.consoleAccessLimits.length; j++) {
@@ -1731,8 +1731,8 @@ function AssignPackageUnitToOrganisation(req,res){
 
                                                                                         if (cal.accessType == packageUnit.unitData.consoleAccessLimit.accessType) {
                                                                                             org.consoleAccessLimits[j].accessLimit = org.consoleAccessLimits[j].accessLimit + topUpCount;
-                                                                                            if(packageUnit.unitData && packageUnit.unitData.resources && packageUnit.unitData.resources.length >2) {
-                                                                                                if(packageUnit.unitData.resources[2].scopes && packageUnit.unitData.resources[2].scopes.length > 0) {
+                                                                                            if (packageUnit.unitData && packageUnit.unitData.resources && packageUnit.unitData.resources.length > 2) {
+                                                                                                if (packageUnit.unitData.resources[2].scopes && packageUnit.unitData.resources[2].scopes.length > 0) {
                                                                                                     packageUnit.unitData.resources[2].scopes[0].limit = topUpCount;
                                                                                                 }
                                                                                             }
@@ -1770,7 +1770,7 @@ function AssignPackageUnitToOrganisation(req,res){
                                                                                     }
                                                                                 }
 
-                                                                                org.unitDetails.push({veeryUnit:packageUnit._id, units: topUpCount, buyDate: Date.now()});
+                                                                                org.unitDetails.push({ veeryUnit: packageUnit._id, units: topUpCount, buyDate: Date.now() });
 
                                                                                 Org.findOneAndUpdate({
                                                                                     tenant: tenant,
@@ -1790,11 +1790,11 @@ function AssignPackageUnitToOrganisation(req,res){
                                                                                     res.end(jsonString);
                                                                                 });
                                                                             });
-                                                                        }else{
+                                                                        } else {
                                                                             jsonString = messageFormatter.FormatMessage(undefined, response.CustomMessage, false, undefined);
                                                                             res.end(jsonString);
                                                                         }
-                                                                    }else{
+                                                                    } else {
                                                                         jsonString = messageFormatter.FormatMessage(err, "Error in Billing request", false, undefined);
                                                                         res.end(jsonString);
                                                                     }
@@ -1828,7 +1828,7 @@ function AssignPackageUnitToOrganisation(req,res){
                                     }
 
                                 });
-                            }else{
+                            } else {
                                 jsonString = messageFormatter.FormatMessage(undefined, "No Package Found", false, undefined);
                                 res.end(jsonString);
                             }
@@ -1836,14 +1836,14 @@ function AssignPackageUnitToOrganisation(req,res){
 
                     });
 
-                }else{
+                } else {
                     jsonString = messageFormatter.FormatMessage(undefined, "No User Account Found.", false, undefined);
                     res.end(jsonString);
                 }
             }
         });
 
-    }else{
+    } else {
 
         jsonString = messageFormatter.FormatMessage(undefined, "Top up count should be grater than zero", false, undefined);
         res.end(jsonString);
@@ -1851,7 +1851,7 @@ function AssignPackageUnitToOrganisation(req,res){
     }
 }
 
-function GetBillingDetails(req, res){
+function GetBillingDetails(req, res) {
     logger.debug("DVP-UserService.GetPackageUnits Internal method ");
 
     var company = parseInt(req.user.company);
@@ -1861,7 +1861,7 @@ function GetBillingDetails(req, res){
 
 
 
-    Org.findOne({tenant: tenant, id: company}).populate('tenantRef').populate({path: 'packageDetails.veeryPackage',populate : {path: 'Package'}}).populate({path: 'unitDetails.veeryUnit',populate : {path: 'PackageUnit'}}).exec( function(err, org) {
+    Org.findOne({ tenant: tenant, id: company }).populate('tenantRef').populate({ path: 'packageDetails.veeryPackage', populate: { path: 'Package' } }).populate({ path: 'unitDetails.veeryUnit', populate: { path: 'PackageUnit' } }).exec(function (err, org) {
 
 
         if (err) {
@@ -1869,10 +1869,10 @@ function GetBillingDetails(req, res){
             res.end(jsonString);
         } else {
             if (org) {
-                if(org.packageDetails && org.packageDetails.length > 0){
-                    for(var i=0; i<org.packageDetails.length;i++){
+                if (org.packageDetails && org.packageDetails.length > 0) {
+                    for (var i = 0; i < org.packageDetails.length; i++) {
                         var pInfo = org.packageDetails[i];
-                        if(pInfo && pInfo.veeryPackage && pInfo.veeryPackage.billingType === 'recurring') {
+                        if (pInfo && pInfo.veeryPackage && pInfo.veeryPackage.billingType === 'recurring') {
                             billingDetails.push({
                                 name: pInfo.veeryPackage.packageName,
                                 type: pInfo.veeryPackage.packageType,
@@ -1889,10 +1889,10 @@ function GetBillingDetails(req, res){
                     }
                 }
 
-                if(org.unitDetails && org.unitDetails.length > 0){
-                    for(var j=0; j<org.unitDetails.length;j++){
+                if (org.unitDetails && org.unitDetails.length > 0) {
+                    for (var j = 0; j < org.unitDetails.length; j++) {
                         var uInfo = org.unitDetails[j];
-                        if(uInfo && uInfo.veeryUnit && uInfo.veeryUnit.billingType === 'recurring') {
+                        if (uInfo && uInfo.veeryUnit && uInfo.veeryUnit.billingType === 'recurring') {
                             billingDetails.push({
                                 name: uInfo.veeryUnit.unitName,
                                 type: uInfo.veeryUnit.unitType,
@@ -1909,23 +1909,21 @@ function GetBillingDetails(req, res){
                     }
                 }
 
-                try{
-                    dbConn.VoxboneDIDRequest.findAll({where: [{Company: company}, {Tenant: tenant}]})
-                        .then(function (didRequest)
-                        {
+                try {
+                    dbConn.VoxboneDIDRequest.findAll({ where: [{ Company: company }, { Tenant: tenant }] })
+                        .then(function (didRequest) {
 
-                            if(didRequest)
-                            {
+                            if (didRequest) {
 
-                                if(didRequest.length > 0){
-                                    for(var k=0; k<didRequest.length;k++){
+                                if (didRequest.length > 0) {
+                                    for (var k = 0; k < didRequest.length; k++) {
                                         var nInfo = didRequest[k];
-                                        if(nInfo) {
+                                        if (nInfo) {
                                             billingDetails.push({
                                                 name: nInfo.DidNumber,
                                                 type: "PHONE_NUMBER",
                                                 category: "DID",
-                                                unitPrice: nInfo.DidMonthlyPrice100/100,
+                                                unitPrice: nInfo.DidMonthlyPrice100 / 100,
                                                 units: nInfo.CapacityEnabled,
                                                 description: nInfo.DidNumber,
                                                 date: nInfo.createdAt,
@@ -1942,20 +1940,19 @@ function GetBillingDetails(req, res){
 
                             jsonString = messageFormatter.FormatMessage(undefined, "Set Billing Details Success", true, billingDetails);
                             res.end(jsonString);
-                        }).catch(function(err)
-                        {
+                        }).catch(function (err) {
                             console.log('[DVP-VoxboneAPI.GetAllDidRequest] - PGSQL query failed', err);
                             jsonString = messageFormatter.FormatMessage(undefined, "Set Billing Details Failed, Retrieving number details unsuccessful", false, billingDetails);
                             res.end(jsonString);
                         });
-                }catch(ex){
+                } catch (ex) {
                     console.log('[DVP-VoxboneAPI.GetAllDidRequest] - PGSQL query failed', err);
                     jsonString = messageFormatter.FormatMessage(undefined, "Set Billing Details Failed, Retrieving number details unsuccessful", false, billingDetails);
                     res.end(jsonString);
                 }
 
 
-            }else {
+            } else {
                 jsonString = messageFormatter.FormatMessage(undefined, "Find Organisation Failed", false, billingDetails);
                 res.end(jsonString);
             }
@@ -1963,7 +1960,7 @@ function GetBillingDetails(req, res){
     });
 }
 
-function RequestToBill(company, tenant, billInfo, callback){
+function RequestToBill(company, tenant, billInfo, callback) {
     try {
         var contextUrl = util.format("http://%s/DVP/API/%s/Billing/BuyPackage", config.Services.billingserviceHost, config.Services.billingserviceVersion);
         if (config.Services.dynamicPort || validator.isIP(config.Services.billingserviceHost)) {
@@ -1971,46 +1968,46 @@ function RequestToBill(company, tenant, billInfo, callback){
         }
         var companyInfo = util.format("%d:%d", tenant, company);
         restClientHandler.DoPost(companyInfo, contextUrl, billInfo, function (err, res1, result) {
-            if(err){
+            if (err) {
                 callback(err, undefined);
-            }else{
-                if(res1.statusCode === 200) {
+            } else {
+                if (res1.statusCode === 200) {
                     callback(undefined, JSON.parse(result));
-                }else{
+                } else {
                     callback(new Error(result), undefined);
                 }
             }
         });
-    }catch(ex){
+    } catch (ex) {
         callback(ex, undefined);
     }
 }
 
-function GetSpaceLimit(req, res){
+function GetSpaceLimit(req, res) {
     logger.debug("DVP-UserService.GetSpaceLimit Internal method ");
 
     var tenant = parseInt(req.user.tenant);
     var company;
-    if(req.params.company){
+    if (req.params.company) {
         company = parseInt(req.params.company);
-    }else {
+    } else {
         company = parseInt(req.user.company);
     }
     var jsonString;
-    Org.findOne({tenant: tenant, id: company}).exec( function(err, org) {
+    Org.findOne({ tenant: tenant, id: company }).exec(function (err, org) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Find Organisation Failed", false, undefined);
-        }else{
-            if(org){
+        } else {
+            if (org) {
 
                 var spaceLimits = [];
                 var filteredSpaceValues = org.spaceLimit.filter(function (sLimit) {
                     return sLimit.spaceType.toLowerCase().indexOf(req.params.spaceType.toLowerCase()) > -1;
                 });
 
-                if(filteredSpaceValues){
+                if (filteredSpaceValues) {
                     filteredSpaceValues.forEach(function (filterValue) {
-                        var tempObj = {CompanyId: org.id, SpaceLimit: undefined};
+                        var tempObj = { CompanyId: org.id, SpaceLimit: undefined };
                         var tempSpaceLimitInfo = {};
 
                         tempSpaceLimitInfo.SpaceType = filterValue.spaceType;
@@ -2019,7 +2016,7 @@ function GetSpaceLimit(req, res){
 
                         tempObj.SpaceLimit = tempSpaceLimitInfo;
 
-                        if(tempObj && tempObj.SpaceLimit) {
+                        if (tempObj && tempObj.SpaceLimit) {
                             spaceLimits.push(tempObj);
                         }
                     });
@@ -2028,11 +2025,11 @@ function GetSpaceLimit(req, res){
 
                     jsonString = messageFormatter.FormatMessage(err, "Get Space Limit Successful", true, spaceLimits);
 
-                }else{
+                } else {
                     jsonString = messageFormatter.FormatMessage(undefined, "No Space Limit Found", false, undefined);
                 }
 
-            }else{
+            } else {
                 jsonString = messageFormatter.FormatMessage(undefined, "No Organisation Found", false, undefined);
             }
 
@@ -2041,16 +2038,16 @@ function GetSpaceLimit(req, res){
     });
 }
 
-function GetSpaceLimitForTenant(req, res){
+function GetSpaceLimitForTenant(req, res) {
     logger.debug("DVP-UserService.GetSpaceLimit Internal method ");
 
     var tenant = parseInt(req.user.tenant);
     var jsonString;
-    Org.find({tenant: tenant}).exec( function(err, orgs) {
+    Org.find({ tenant: tenant }).exec(function (err, orgs) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Find Organisation Failed", false, undefined);
-        }else{
-            if(orgs){
+        } else {
+            if (orgs) {
 
                 var spaceLimits = [];
 
@@ -2060,10 +2057,10 @@ function GetSpaceLimitForTenant(req, res){
                         return sLimit && sLimit.spaceType.toLowerCase().indexOf(req.params.spaceType.toLowerCase()) > -1;
                     });
 
-                    if(filteredSpaceValues){
+                    if (filteredSpaceValues) {
 
                         filteredSpaceValues.forEach(function (filterValue) {
-                            var tempObj = {CompanyId: org.id, SpaceLimit: undefined};
+                            var tempObj = { CompanyId: org.id, SpaceLimit: undefined };
                             var tempSpaceLimitInfo = {};
                             //if(filteredSpaceValues.length > 1){
                             //
@@ -2076,15 +2073,15 @@ function GetSpaceLimitForTenant(req, res){
                             //}else{
                             //
                             //    if(filteredSpaceValues.length === 1) {
-                                    tempSpaceLimitInfo.SpaceType = filterValue.spaceType;
-                                    tempSpaceLimitInfo.SpaceUnit = filterValue.spaceUnit;
-                                    tempSpaceLimitInfo.SpaceLimit = filterValue.spaceLimit;
+                            tempSpaceLimitInfo.SpaceType = filterValue.spaceType;
+                            tempSpaceLimitInfo.SpaceUnit = filterValue.spaceUnit;
+                            tempSpaceLimitInfo.SpaceLimit = filterValue.spaceLimit;
 
-                                    tempObj.SpaceLimit = tempSpaceLimitInfo;
+                            tempObj.SpaceLimit = tempSpaceLimitInfo;
                             //    }
                             //}
 
-                            if(tempObj && tempObj.SpaceLimit) {
+                            if (tempObj && tempObj.SpaceLimit) {
                                 spaceLimits.push(tempObj);
                             }
                         });
@@ -2094,7 +2091,7 @@ function GetSpaceLimitForTenant(req, res){
 
                 jsonString = messageFormatter.FormatMessage(undefined, "Get Space Limit Successful", true, spaceLimits);
 
-            }else{
+            } else {
                 jsonString = messageFormatter.FormatMessage(undefined, "No Organisation Found", false, undefined);
             }
 
@@ -2103,7 +2100,7 @@ function GetSpaceLimitForTenant(req, res){
     });
 }
 
-function GetOrganisationPackagesByType(req, res){
+function GetOrganisationPackagesByType(req, res) {
     logger.debug("DVP-UserService.GetOrganisationPackagesByType Internal method ");
 
     var tenant = parseInt(req.user.tenant);
@@ -2113,30 +2110,106 @@ function GetOrganisationPackagesByType(req, res){
 
     var match = {};
 
-    if(packageType)
+    if (packageType)
         match.navigationType = packageType;
 
     try {
-        Org.findOne({tenant: tenant, id: company}).populate({path: 'packageDetails.veeryPackage', match : match, select: '-resources -consoleAccessLimit', populate : {path: 'Package'}}).select('packageDetails')
-        .exec(function(err, org) {
-            if (err) {
-                jsonString = messageFormatter.FormatMessage(err, "Get Organisation Packages Failed", false, undefined);
-            }else{
-                if(org && org.packageDetails){
-                    var packages = org.packageDetails.filter(function(pkg){  return pkg.veeryPackage; });
-                    jsonString = messageFormatter.FormatMessage(err, "Get Organisation Packages Successful", true, packages);
-                }else{
-                    jsonString = messageFormatter.FormatMessage(new Error("Organization Not Found!"), "Get Organisation Packages Failed", false, undefined);
+        Org.findOne({ tenant: tenant, id: company }).populate({ path: 'packageDetails.veeryPackage', match: match, select: '-resources -consoleAccessLimit', populate: { path: 'Package' } }).select('packageDetails')
+            .exec(function (err, org) {
+                if (err) {
+                    jsonString = messageFormatter.FormatMessage(err, "Get Organisation Packages Failed", false, undefined);
+                } else {
+                    if (org && org.packageDetails) {
+                        var packages = org.packageDetails.filter(function (pkg) { return pkg.veeryPackage; });
+                        jsonString = messageFormatter.FormatMessage(err, "Get Organisation Packages Successful", true, packages);
+                    } else {
+                        jsonString = messageFormatter.FormatMessage(new Error("Organization Not Found!"), "Get Organisation Packages Failed", false, undefined);
+                    }
                 }
-            }
-            res.end(jsonString);
-        });
-    
-    } catch(e) {
+                res.end(jsonString);
+            });
+
+    } catch (e) {
         jsonString = messageFormatter.FormatMessage(e, "Get Organisation Packages Failed", false, undefined);
         res.end(jsonString);
         console.log(e);
     };
+}
+
+function CreateDashboardServiceSchdule(company, tenant, timezone, isUpdate, callback) {
+    logger.debug("Creating DashboardService Schdule");
+    // Send request to schduler service /DVP/API/'+version+'/Cron
+    try {
+        var addCronTaskUrl = util.format("http://%s/DVP/API/%s/Cron", config.Services.scheduleWorkerServiceHost, config.Services.scheduleWorkerServiceVersion);
+        if (config.Services.dynamicPort || validator.isIP(config.Services.scheduleWorkerServiceHost)) {
+            addCronTaskUrl = util.format("http://%s:%s/DVP/API/%s/Cron", config.Services.scheduleWorkerServiceHost, config.Services.scheduleWorkerServicePort, config.Services.scheduleWorkerServiceVersion);
+        }
+
+        var companyInfo = util.format("%d:%d", tenant, company);
+        var reference = `DashboardService-Backup:${companyInfo}`;
+
+        var cronObj = {
+            Description: "Dashboard Service Data Backup Task",
+            CronePattern: "0 0 0 * * *",
+            CallbackURL: "redis://DashboardService-Backup",
+            CallbackData: JSON.stringify({
+                tenant: tenant,
+                company: company,
+            }),
+            Reference: reference,
+            Timezone: timezone.tz
+        }
+
+        logger.debug("CreateDashboardServiceSchdule 'cronObj': " + JSON.stringify(cronObj));
+
+        if (isUpdate) {
+            var deleteCronTaskUrl = `http://${config.Services.scheduleWorkerServiceHost}/DVP/API/${config.Services.scheduleWorkerServiceVersion}/Cron/Reference/${reference}`;
+            if (config.Services.dynamicPort || validator.isIP(config.Services.scheduleWorkerServiceHost)) {
+                deleteCronTaskUrl = `http://${config.Services.scheduleWorkerServiceHost}:${config.Services.scheduleWorkerServicePort}/DVP/API/${config.Services.scheduleWorkerServiceVersion}/Cron/Reference/${reference}`
+            }
+            restClientHandler.DoDelete(companyInfo, deleteCronTaskUrl, null, function (err, res1, result) {
+                if (err) {
+                    callback(err);
+                    logger.error("Error: Deleting DashboardService Schdule" + err);
+                } else {
+                    restClientHandler.DoPost(companyInfo, addCronTaskUrl, cronObj, function (err, res1, result) {
+                        logger.debug("Deleted DashboardService Schdule");
+                        if (err) {
+                            callback(err);
+                            logger.error("Error: Creating DashboardService Schdule" + err);
+                        } else {
+                            if (res1.statusCode === 200) {
+                                callback(undefined);
+                                logger.debug("Created DashboardService Schdule");
+                            } else {
+                                logger.error("Error: Creating DashboardService Schdule" + result);
+                                callback(new Error(result));
+                            }
+                        }
+                    });
+                }
+            });
+        }
+        else {
+            restClientHandler.DoPost(companyInfo, addCronTaskUrl, cronObj, function (err, res1, result) {
+                if (err) {
+                    callback(err);
+                    logger.error("Error: Creating DashboardService Schdule" + err);
+                } else {
+                    if (res1.statusCode === 200) {
+                        callback(undefined);
+                        logger.debug("Created DashboardService Schdule");
+                    } else {
+                        logger.error("Error: Creating DashboardService Schdule" + result);
+                        callback(new Error(result));
+                    }
+                }
+            });
+        }
+    } catch (ex) {
+        callback(ex);
+        logger.error("Error: CreateDashboardServiceSchdule" + ex);
+    }
 }
 
 module.exports.GetOrganisation = GetOrganisation;

@@ -94,7 +94,10 @@ module.exports = {
     notificationServiceHost: "",
     notificationServicePort: "8089",
     notificationServiceVersion: "1.0.0.0",
-    dynamicPort: true
+    dynamicPort: false,
+    scheduleWorkerServiceHost: "127.0.0.1",
+    scheduleWorkerServicePort: "8086",
+    scheduleWorkerServiceVersion: "1.0.0.0",
   },
 
   Tenant: {

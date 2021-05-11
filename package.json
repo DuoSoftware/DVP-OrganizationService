@@ -28,6 +28,7 @@
     "ioredis": "^4.16.3",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.25.1",
+    "moment-timezone": "^0.5.32",
     "node-uuid": "^1.4.8",
     "oauth2orize": "^1.11.0",
     "oauth2orize-jwt-bearer": "^0.2.0",
