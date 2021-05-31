@@ -61,7 +61,8 @@
              redisSetting = {
                  sentinels:sentinelConnections,
                  name: config.Redis.sentinels.name,
-                 password: redispass
+                 password: redispass,
+                 db: 8,
              }
  
          }else{
