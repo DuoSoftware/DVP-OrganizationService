@@ -5,6 +5,8 @@ var logger = require('dvp-common-lite/LogHandler/CommonLogHandler.js').logger;
 var Tenant = require('dvp-mongomodels/model/Tenant').Tenant;
 var messageFormatter = require('dvp-common-lite/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var Org = require('dvp-mongomodels/model/Organisation');
+var organizationService = require('./OrganisationService.js');
+var util = require('util');
 
 function CreateTenant(req, res) {
 
@@ -134,12 +136,24 @@ function GetCompanyDomain(req, res){
     });
 
 }
+ async function getObject(key, callback) {
+     await organizationService.RedisCon.get(key, function (err, obj) {
+        if (err) {
+            logger.error("Redis getObject (get) error :: %s", err);
+            callback(err, undefined);
+        } else {
+            logger.info("Redis getObject (get) success :: %s", obj);
+            callback(err, obj);
+        }
+    });
+};
 
-function GetBasicCompanyDetailsByTenant(req, res){
+async function GetBasicCompanyDetailsByTenant(req, res){
     var jsonString;
     try{
         var tenant = req.user.tenant;
-        Org.find({tenant: tenant}).lean().exec(function (err, orgs) {
+        logger.debug("DVP-UserService.GetBasicCompanyDetailsByTenant Internal method ");
+        Org.find({tenant: tenant}).lean().exec(async function (err, orgs) {
             if(err){
                 jsonString = messageFormatter.FormatMessage(err, "Get Basic Company Details Failed", false, undefined);
             }else{
@@ -147,11 +161,35 @@ function GetBasicCompanyDetailsByTenant(req, res){
                     return{
                         companyName: org.companyName,
                         companyId: org.id,
-                        companyStatus: org.companyEnabled
+                        companyStatus: org.companyEnabled,
+                        activeUsers: 0
                     }
                 });
 
+
+                for(var i=0; i<basicOrgDetails.length; i++){
+                    currentCountSearch = util.format('CONCURRENTWLPARAM:%s:%s:%s:%s', tenant, basicOrgDetails[i].companyId, 'LOGIN', 'Register');
+                    logger.info("REDIS KEY :: %s", currentCountSearch);
+
+                    await getObject(currentCountSearch, function(err, result){
+                        if(err){
+                            jsonString = messageFormatter.FormatMessage(err, "OnGetCurrentCount: Get Failed", false, 0);
+                            logger.error("Redis get Concurrent info failed :: %s", jsonString);
+                        }else{
+                            if(result){
+                                basicOrgDetails[i].activeUsers = result;
+                                jsonString = messageFormatter.FormatMessage(undefined, "OnGetCurrentCount: Success", true, basicOrgDetails[i].activeUsers);
+                                logger.info("Redis get Concurrent info success :: %s", jsonString);
+                            }else{
+                                jsonString = messageFormatter.FormatMessage(undefined, "OnGetCurrentCount: No Keys Found", false, basicOrgDetails[i].activeUsers);
+                                logger.info("Redis get Concurrent info failed :: %s", jsonString);
+                            }
+                        }
+                    });
+                }
                 jsonString = messageFormatter.FormatMessage(undefined, "Get Basic Company Details Success", true, basicOrgDetails);
+
+
             }
 
             res.end(jsonString);
